@@ -1,0 +1,21 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-authority-table
+      author: aydanrahimova
+      changes:
+        - createTable:
+            tableName: authority
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+

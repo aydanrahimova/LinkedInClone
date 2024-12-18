@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-experience-table
+      author: aydanrahimova
+      changes:
+        - createTable:
+            tableName: experience
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: title
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: TEXT
+              - column:
+                  name: employment_type
+                  type: VARCHAR(255)
+              - column:
+                  name: start_time
+                  type: DATE
+              - column:
+                  name: end_time
+                  type: DATE
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: experience_users_id_fk
+                    references: users(id)
+              - column:
+                  name: organization_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: experience_organization_id_fk
+                    references: organization(id)

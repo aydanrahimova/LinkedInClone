@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - includeAll:
+      path: liquibase/1.0/changelog
+  - includeAll:
+      path: liquibase/1.0/data
