@@ -19,22 +19,27 @@ public class JobController {
     private final JobService jobService;
 
     @GetMapping
-    public Page<JobResponse> getJobs(@PageableDefault Pageable pageable, JobFilterDto jobFilterDto){
-        return jobService.getJobs(pageable,jobFilterDto);
+    public Page<JobResponse> getJobs(@PageableDefault Pageable pageable, JobFilterDto jobFilterDto) {
+        return jobService.getJobs(pageable, jobFilterDto);
     }
 
     @GetMapping("/{id}")
-    public JobResponse getJob(@PathVariable Long id){
+    public JobResponse getJob(@PathVariable Long id) {
         return jobService.getJob(id);
     }
 
     @PostMapping
-    public JobResponse postJob(@Validated @RequestBody JobRequest jobRequest){
+    public JobResponse postJob(@Validated @RequestBody JobRequest jobRequest) {
         return jobService.postJob(jobRequest);
     }
 
     @PutMapping("/{id}")
-    public JobResponse editJob(@PathVariable Long id,@Validated @RequestBody JobUpdateRequest updateRequest){
-        return jobService.editJob(id,updateRequest);
+    public JobResponse editJob(@PathVariable Long id, @Validated @RequestBody JobUpdateRequest updateRequest) {
+        return jobService.editJob(id, updateRequest);
+    }
+
+    @PatchMapping("/{id}")
+    public JobResponse deactivateJob(@PathVariable Long id){
+        return jobService.deactivateJob(id);
     }
 }

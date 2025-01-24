@@ -17,4 +17,8 @@ databaseChangeLog:
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
-
+              - column:
+                  name: category
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false

@@ -1,0 +1,22 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-job-skills-table
+      author: aydanrahimova
+      changes:
+        - createTable:
+            tableName: job_skills
+            columns:
+              - column:
+                  name: job_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_job_job_skills
+                    references: job(id)
+              - column:
+                  name: skill_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_skill_job_skills
+                    references: skill(id)

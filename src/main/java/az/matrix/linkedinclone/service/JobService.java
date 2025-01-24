@@ -17,4 +17,6 @@ public interface JobService {
     JobResponse getJob(Long id);
 
     JobResponse editJob(Long id, JobUpdateRequest updateRequest);
+
+    JobResponse deactivateJob(Long id);
 }

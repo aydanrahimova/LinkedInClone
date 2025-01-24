@@ -11,12 +11,13 @@ import az.matrix.linkedinclone.dto.response.OrganizationAdminResponse;
 import az.matrix.linkedinclone.dto.response.OrganizationResponse;
 import az.matrix.linkedinclone.enums.OrganizationPermission;
 import az.matrix.linkedinclone.enums.OrganizationRole;
-import az.matrix.linkedinclone.enums.ProfileStatus;
+import az.matrix.linkedinclone.enums.EntityStatus;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.exception.UnauthorizedException;
 import az.matrix.linkedinclone.mapper.OrganizationAdminMapper;
 import az.matrix.linkedinclone.mapper.OrganizationMapper;
 import az.matrix.linkedinclone.service.OrganizationService;
+import az.matrix.linkedinclone.utility.AuthHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 
 @Service
@@ -36,6 +40,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     private final UserRepo userRepo;
     private final OrganizationAdminRepo organizationAdminRepo;
     private final OrganizationAdminMapper organizationAdminMapper;
+    private final AuthHelper authHelper;
 
     @Override
     public OrganizationResponse getOrganization(Long id) {
@@ -52,14 +57,13 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Transactional
     @Override
     public OrganizationResponse createOrganization(OrganizationRequest organizationRequest) {
-        String authenticatedUseEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of creating new organization by user {} started.", authenticatedUseEmail);
-        User user = userRepo.findByEmail(authenticatedUseEmail).orElseThrow(() -> {
-            log.info("Failed to create new organization by user {}: User not found.", authenticatedUseEmail);
-            return new ResourceNotFoundException("USER_NOT_FOUND");
-        });
+        User user = authHelper.getAuthenticatedUser();
+        log.info("Operation of creating new organization by user with email {} started.", user.getEmail());
+
         Organization organization = organizationMapper.toEntity(organizationRequest);
-        organization.setStatus(ProfileStatus.ACTIVE);
+        organization.setStatus(EntityStatus.ACTIVE);
+        organization.setCreatedBy(user);
+        organization.setCreatedAt(LocalDateTime.now());
 
         OrganizationAdmin organizationAdmin = new OrganizationAdmin();
         organizationAdmin.setOrganization(organization);
@@ -135,177 +139,9 @@ public class OrganizationServiceImpl implements OrganizationService {
             log.warn("Failed to deactivate organization page with ID {}: For editing the page admin must be SuperAdmin", id);
             throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
         }
-        organization.setStatus(ProfileStatus.DEACTIVATED);
+        organization.setStatus(EntityStatus.DEACTIVATED);
         organizationRepo.save(organization);
     }
-
-    @Override
-    @Transactional
-    public void addAdmin(Long id, Long userId, OrganizationRole role) {
-        String authenticatedUseEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of adding new admin of organization with ID {} by user {} started.", id, authenticatedUseEmail);
-        User admin = userRepo.findByEmail(authenticatedUseEmail)
-                .orElseThrow(() -> {
-                    log.warn("Failed to add new admin to organization page with ID {}: User {} not found", id, authenticatedUseEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-        User newAdmin = userRepo.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("Failed to add new admin to organization page with ID {}: User {} not found for adding new admin", id, authenticatedUseEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-//        Organization organization = organizationRepo.findById(id)
-//                .orElseThrow(() -> {
-//                    log.warn("Failed to add new admin to organization page: Organization with ID {} not found", id);
-//                    return new ResourceNotFoundException("ORGANIZATION_NOT_FOUND");
-//                });
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("Failed to add new admin to organization page with ID {}:User {} is not admin of that page", id, authenticatedUseEmail);
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (!organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            log.warn("Failed to add new admin to organization page with ID {}:For adding new admin the admin must be SuperAdmin", id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
-
-        Organization organization = organizationAdmin.getOrganization();
-
-        OrganizationAdmin newOrganizationAdmin = new OrganizationAdmin();
-        newOrganizationAdmin.setOrganization(organization);
-        newOrganizationAdmin.setAdmin(newAdmin);
-        newOrganizationAdmin.setRole(role);
-
-        organization.getAdmins().add(newOrganizationAdmin);
-        organizationRepo.save(organization);
-        log.info("New admin added successfully to organization with ID {}", id);
-
-
-    }
-
-    @Override
-    @Transactional
-    public void changeAdminRole(Long id, Long userId, OrganizationRole organizationRole) {
-        String authenticatedUseEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of changing admin role for user with ID {} in organization with ID {} by user {} started.", userId, id, authenticatedUseEmail);
-
-        User admin = userRepo.findByEmail(authenticatedUseEmail)
-                .orElseThrow(() -> {
-                    log.warn("Failed to change admin role for organization with ID {}: User {} not found", id, authenticatedUseEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        User adminToChange = userRepo.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("Failed to change admin role for organization with ID {}: User with ID {} not found", id, userId);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("User {} is not an admin of organization with ID {}", authenticatedUseEmail, id);
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        OrganizationAdmin organizationAdminToChange = organizationAdminRepo.findByAdminAndOrganizationId(adminToChange, id)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} is not an admin of organization with ID {}", userId, id);
-                    return new ResourceNotFoundException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            organizationAdminToChange.setRole(organizationRole);  // Change the admin role
-            organizationAdminRepo.save(organizationAdminToChange); // Save the updated admin
-            log.info("Successfully changed the role of user {} in organization with ID {}.", userId, id);
-        } else {
-            log.warn("User {} does not have permission to manage roles in organization with ID {}", authenticatedUseEmail, id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
-    }
-
-    @Override
-    public void deleteAdmin(Long id, Long userId) {
-        String authenticatedUseEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of deleting admin with ID {} from organization with ID {} by user {} started.", userId, id, authenticatedUseEmail);
-
-        User admin = userRepo.findByEmail(authenticatedUseEmail)
-                .orElseThrow(() -> {
-                    log.warn("Failed to delete admin for organization with ID {}: User {} not found", id, authenticatedUseEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        User adminToDelete = userRepo.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("Failed to delete admin for organization with ID {}: User with ID {} not found", id, userId);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        // Ensure the authenticated user is an admin in the specified organization
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("User {} is not an admin of organization with ID {}", authenticatedUseEmail, id);
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        // Ensure the admin to be deleted is an admin in the specified organization
-        OrganizationAdmin organizationAdminToDelete = organizationAdminRepo.findByAdminAndOrganizationId(adminToDelete, id)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} is not an admin of organization with ID {}", userId, id);
-                    return new ResourceNotFoundException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            if (admin.getId().equals(adminToDelete.getId()) && organizationAdminRepo.existsByOrganizationIdAndRole(id, OrganizationRole.SUPER_ADMIN)) {
-                log.warn("User {} cannot delete themselves as an admin in organization with ID {}: as there is not another Super Admin", authenticatedUseEmail, id);
-                throw new UnauthorizedException("CANNOT_DELETE_SELF_AS_ADMIN");
-            }
-
-            organizationAdminRepo.delete(organizationAdminToDelete);
-            log.info("Successfully deleted admin with ID {} from organization with ID {}.", userId, id);
-
-        } else {
-            log.warn("User {} does not have permission to manage roles in organization with ID {}", authenticatedUseEmail, id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
-    }
-
-    @Override
-    public Page<OrganizationAdminResponse> getAllAdmins(Long organizationId, Pageable pageable) {
-        String authenticatedUseEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of getting all admins of organization with ID {} by user {} started.", organizationId, authenticatedUseEmail);
-
-        User admin = userRepo.findByEmail(authenticatedUseEmail)
-                .orElseThrow(() -> {
-                    log.warn("Failed to get admins for organization with ID {}: User {} not found", organizationId, authenticatedUseEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, organizationId)
-                .orElseThrow(() -> {
-                    log.warn("User {} is not an admin of organization with ID {}", authenticatedUseEmail, organizationId);
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        return organizationAdminRepo.findAllByOrganizationId(organizationId, pageable)
-                .map(organizationAdminMapper::toDto);
-    }
-
-
-//    private OrganizationAdmin validateAdminAccess(Long organizationId, String currentUserEmail, OrganizationPermission requiredPermission) {
-//        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminEmailAndOrganizationId(currentUserEmail, organizationId)
-//                .orElseThrow(() -> {
-//                    log.warn("User {} is not an admin of organization with ID {}", currentUserEmail, organizationId);
-//                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-//                });
-//
-//        if (!organizationAdmin.getRole().hasPermission(requiredPermission)) {
-//            log.warn("User {} does not have sufficient permissions to perform this action.", currentUserEmail);
-//            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-//        }
-//
-//        return organizationAdmin;
-//    }
 
 
 }

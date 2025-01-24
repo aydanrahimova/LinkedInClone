@@ -1,7 +1,7 @@
 package az.matrix.linkedinclone.dao.repo;
 
 import az.matrix.linkedinclone.dao.entity.User;
-import az.matrix.linkedinclone.enums.ProfileStatus;
+import az.matrix.linkedinclone.enums.EntityStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -14,7 +14,9 @@ public interface UserRepo extends JpaRepository<User,Long> {
 
     boolean existsByEmail(String email);
 
-    List<User> findAllByStatus(ProfileStatus status);
+    List<User> findAllByStatus(EntityStatus status);
 
-    Optional<User>  findByIdAndStatus(Long id, ProfileStatus profileStatus);
+    Optional<User>  findByIdAndStatus(Long id, EntityStatus status);
+
+    Optional<User>  findByEmailAndStatus(String authenticatedEmail,EntityStatus status);
 }

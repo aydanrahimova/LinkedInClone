@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -22,4 +23,5 @@ public class JobRequest {
     private EmploymentType employmentType;
     @Size(min = 5,max = 200,message = "Description of job should be between 5 and 200 characters.")
     private String description;
+    private List<Long> skillId;
 }

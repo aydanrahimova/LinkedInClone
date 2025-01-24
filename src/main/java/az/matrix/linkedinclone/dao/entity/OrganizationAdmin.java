@@ -2,13 +2,15 @@ package az.matrix.linkedinclone.dao.entity;
 
 import az.matrix.linkedinclone.enums.OrganizationRole;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "organization_admin")
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrganizationAdmin {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

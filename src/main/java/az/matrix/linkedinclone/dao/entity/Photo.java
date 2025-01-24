@@ -7,6 +7,7 @@ import lombok.*;
 @Table(name = "photo")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class Photo {

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
@@ -25,20 +26,15 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService userDetailsService;
 
-
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(authorize -> authorize
-                                .requestMatchers("/education/").hasAnyAuthority(Role.ROLE_USER.name(), Role.ROLE_ADMIN.name())
-                                .requestMatchers(AuthUrlMapping.PERMIT_ALL.getUrls()).permitAll()
-                                .requestMatchers("users/deactivate-user").authenticated()
-                                .requestMatchers("users/{id}").hasAnyAuthority(Role.ROLE_USER.name())
-//                        .requestMatchers(AuthUrlMapping.ANY_AUTHENTICATED.getUrls()).authenticated()
-//                        .requestMatchers(AuthUrlMapping.USER.getUrls()).hasAnyAuthority(Role.ROLE_USER.name())
-//                        .requestMatchers(AuthUrlMapping.ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_ADMIN.name())
-//                        .requestMatchers(HttpMethod.PUT, AuthUrlMapping.ADMIN.getUrls())
+                        .requestMatchers(AuthUrlMapping.PERMIT_ALL.getUrls()).permitAll()
+                        .requestMatchers(HttpMethod.GET, AuthUrlMapping.USER.getUrls()).hasAnyAuthority(Role.ROLE_USER.name())
+                        .requestMatchers(AuthUrlMapping.ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_ADMIN.name())
+                        .requestMatchers(AuthUrlMapping.ANY_AUTHENTICATED.getUrls()).authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)

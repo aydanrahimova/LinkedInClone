@@ -3,6 +3,7 @@ package az.matrix.linkedinclone.exception.handler;
 import az.matrix.linkedinclone.dto.response.ExceptionDto;
 import az.matrix.linkedinclone.exception.*;
 import az.matrix.linkedinclone.exception.IllegalArgumentException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -38,6 +40,12 @@ public class GlobalExceptionHandler {
         return new ExceptionDto(ex.getMessage());
     }
 
+    @ResponseStatus(HttpStatus.BAD_REQUEST)//400
+    @ExceptionHandler(FileIOException.class)
+    public ExceptionDto handlerIllegalArgumentException(FileIOException ex) {
+        return new ExceptionDto(ex.getMessage());
+    }
+
     @ResponseStatus(HttpStatus.UNAUTHORIZED)//401
     @ExceptionHandler(UnauthorizedException.class)
     public ExceptionDto handleUnauthorizedException(UnauthorizedException ex) {
@@ -53,6 +61,7 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)//404
     @ExceptionHandler(ResourceNotFoundException.class)
     public ExceptionDto handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.error(ex.getMessage());
         return new ExceptionDto(ex.getMessage());
     }
 

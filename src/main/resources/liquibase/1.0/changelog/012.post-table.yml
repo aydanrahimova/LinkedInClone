@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-post-table
+      author: aydanrahimova
+      changes:
+        - createTable:
+            tableName: post
+            columns:
+              - column:
+                  name: post_id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: text
+                  type: TEXT
+                  constraints:
+                    nullable: false
+  - changeSet:
+      id: add-constraints-post
+      author: aydanrahimova
+      changes:
+        - addForeignKeyConstraint:
+            baseTableName: post
+            baseColumnNames: post_id
+            constraintName: fk_post_target
+            referencedTableName: reaction_target
+            referencedColumnNames: id
+

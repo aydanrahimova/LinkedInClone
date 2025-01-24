@@ -1,30 +1,29 @@
 package az.matrix.linkedinclone.dao.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
+import lombok.*;
 
-import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "comment")
 @Getter
 @Setter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Comment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@PrimaryKeyJoinColumn(name = "commentId")
+public class Comment extends ReactionTarget {
     private String content;
     @ManyToOne
+    @JoinColumn(name = "post_id")
     private Post post;
     @ManyToOne
-    private User user;
-    //burda da user_id ve post_id unique olmalidir
-    @CreationTimestamp
-    private LocalDate addTime;
+    @JoinColumn(name = "parent_comment_id")
+    private Comment parentComment;
+    @OneToMany(mappedBy = "parentComment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> replies = new ArrayList<>();
+
+
 }

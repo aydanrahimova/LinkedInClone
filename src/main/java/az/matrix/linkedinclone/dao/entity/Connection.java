@@ -2,8 +2,8 @@ package az.matrix.linkedinclone.dao.entity;
 
 import az.matrix.linkedinclone.enums.ConnectionStatus;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
 
@@ -11,16 +11,22 @@ import java.time.LocalDate;
 @Table(name = "connection")
 @Getter
 @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Connection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    Long id;
     @ManyToOne
-    private User sender;
+    @JoinColumn(name = "sender_id")
+    User sender;
     @ManyToOne
-    private User receiver;
+    @JoinColumn(name = "receiver_id")
+    User receiver;
     @Enumerated(EnumType.STRING)
-    private ConnectionStatus status;
-    private LocalDate sendTime;
-    private LocalDate responseTime;
+    ConnectionStatus status;
+    LocalDate sendTime;
+    LocalDate responseTime;
 }

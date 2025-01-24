@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
                 description = "A REST ful API built with Spring Boot for managing user profiles and portfolios, " +
                         "featuring secure JWT authentication, role-based access control, " +
                         "and CRUD operations for sections like education, experience, skills and projects.",
-                title = "Portfolio API Development",
+                title = "LinkedIn Clone",
                 version = "1.0",
                 license = @License(
                         name = "Licence name"

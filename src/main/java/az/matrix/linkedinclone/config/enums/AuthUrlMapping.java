@@ -6,16 +6,20 @@ import lombok.Getter;
 public enum AuthUrlMapping {
 
     USER(Role.ROLE_USER.name(), new String[]{
-            "/education/users/{userId}",
-            "/experience/users/{userId}",
+            "/educations/users/{userId}",
+            "/experiences/users/{userId}",
             "/projects/users/{userId}",
             "/skills/users/{userId}",
-            "/user/{id}"
+            "/users/{id}",
+            "/comments",
+            "/jobs",
+            "/organizations/{id}",
+            "/posts/**",
+            "/reactions"
     }),
     ADMIN(Role.ROLE_ADMIN.name(), new String[]{
-            "/user/admin/delete-user/{userId}",
-            "/user/admin/users"
-
+            "/users/admin/**",
+            "/admin/**"
     }),
     PERMIT_ALL(null, new String[]{
             "/api/v1/auth/**",
@@ -27,24 +31,30 @@ public enum AuthUrlMapping {
             "/configuration/ui",
             "/swagger-ui/**",
             "/swagger-ui.html",
-
-
-
             "/auth/**"
     }),
 
     ANY_AUTHENTICATED(null, new String[]{
-            "/education",
-            "/education/{educationId}",
-            "/experience",
-            "/experience/{experienceId}",
+            "/educations",
+            "/educations/{id}",
+            "/experiences",
+            "/experiences/{id}",
             "/projects",
-            "/projects/{projectId}",
+            "/projects/{id}",
             "/skills",
-            "/skills/{skillId}",
-            "/user/{id}/edit",
-            "/user/{id}/change-password",
-            "/user{id}/delete"
+            "/skills/{id}",
+            "/users/**",
+//            "/user/change-password",
+//            "/user/deactivate",
+            "/connections/all",
+            "/comments",
+            "/comments/**",
+            "/connections/**",
+            "/applications/**",
+            "/jobs/**",
+            "/organizations/**",
+            "/posts/**",
+            "/reactions/**"
     });
 
 

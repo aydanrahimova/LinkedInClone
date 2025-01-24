@@ -55,7 +55,6 @@ public class JwtUtil {
 
         Date tokenCreateTime = new Date();
 
-       //TimeUnit.MINUTES.toMillis()-saniyeleri deqiqeye cevirir
         Date tokenValidity = new Date(tokenCreateTime.getTime() + accessTokenValidity);
 
         final JwtBuilder jwtBuilder = Jwts.builder()

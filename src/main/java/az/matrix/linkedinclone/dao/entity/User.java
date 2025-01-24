@@ -1,6 +1,6 @@
 package az.matrix.linkedinclone.dao.entity;
 
-import az.matrix.linkedinclone.enums.ProfileStatus;
+import az.matrix.linkedinclone.enums.EntityStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,17 +38,17 @@ public class User implements UserDetails {
     private String phone;
     private LocalDate birthDate;
     @Enumerated(EnumType.STRING)
-    private ProfileStatus status;
+    private EntityStatus status;
     private LocalDate deactivationDate;
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     private List<OrganizationAdmin> adminRoles = new ArrayList<>();
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Education> education;
     @ManyToMany
     private List<Skill> skills;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user",  fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Experience> experiences;
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user",  fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Project> projects;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

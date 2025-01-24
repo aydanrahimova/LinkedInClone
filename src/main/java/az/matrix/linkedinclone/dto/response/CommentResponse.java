@@ -4,8 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//@Data
-//@AllArgsConstructor
-//@NoArgsConstructor
+import java.util.List;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CommentResponse {
+    private UserResponse user;
+    private String content;
+    private List<CommentResponse> replies;
 }

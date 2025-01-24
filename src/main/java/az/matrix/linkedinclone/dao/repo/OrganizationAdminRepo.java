@@ -19,4 +19,5 @@ public interface OrganizationAdminRepo extends JpaRepository<OrganizationAdmin, 
 
     Page<OrganizationAdmin> findAllByOrganizationId(Long organizationId, Pageable pageable);
 
+    boolean existsByAdminAndOrganization(User user, Organization organization);
 }

@@ -1,0 +1,44 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-reaction-table
+      author: aydanrahimova
+      changes:
+        - createTable:
+            tableName: reaction
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    autoIncrement: true
+                    constraints:
+                      primaryKey: true
+              - column:
+                  name: target_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_target_reaction
+                    references: reaction_target(id)
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_user_reaction
+                    references: users(id)
+              - column:
+                  name: reaction_type
+                  type: VARCHAR
+                  constraints:
+                    nullable: false
+              - column:
+                  name: add_time
+                  type: TIMESTAMP
+                  defaultValueComputed: CURRENT_TIMESTAMP
+              - column:
+                  name: edit_time
+                  type: TIMESTAMP
+              - column:
+                  name: is_edited
+                  type: boolean

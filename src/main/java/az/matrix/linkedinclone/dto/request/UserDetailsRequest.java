@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -26,8 +25,6 @@ public class UserDetailsRequest {
     @Size(max = 100, message = "Email cannot be longer than 100 characters.")
     @Email(message = "Invalid email format.")
     private String email;
-
-    private MultipartFile photo;
 
     @Size(min = 2, max = 100, message = "Title must be between 2 and 100 characters.")
     private String title;

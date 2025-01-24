@@ -1,24 +1,45 @@
 package az.matrix.linkedinclone.controller;
 
+import az.matrix.linkedinclone.dto.response.JobApplicationResponse;
 import az.matrix.linkedinclone.service.JobApplicationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/job-applications")
+@RequestMapping("/applications")
 @RequiredArgsConstructor
 public class JobApplicationController {
     private final JobApplicationService jobApplicationService;
-    //apply for job
-    //get all application-authenticated
-    //change status-PENDING to REVIEWED, ACCEPTED, or REJECTED
-    @PostMapping("/{jobId}")
-    //cv de gonderirik
-    public void applyForJob(@PathVariable Long jobId){
-        jobApplicationService.applyForJob(jobId);
+
+    @GetMapping
+    public Page<JobApplicationResponse> getJobApplications(@RequestParam Long jobId, @PageableDefault Pageable pageable) {
+        return jobApplicationService.getAllJobApplications(jobId, pageable);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public JobApplicationResponse applyForJob(@RequestParam Long jobId, @RequestPart MultipartFile resume) {
+        return jobApplicationService.applyForJob(jobId,resume);
+    }
+
+    @GetMapping("/{id}")
+    public JobApplicationResponse viewApplication(@PathVariable Long id) {
+        return jobApplicationService.viewApplication(id);
+    }
+
+    //bir api yaz
+    @PatchMapping("/{id}/accept")
+    public JobApplicationResponse acceptJobApplication(@PathVariable Long id) {
+        return jobApplicationService.acceptJobApplication(id);
+    }
+
+    @PatchMapping("/{id}/reject")
+    public JobApplicationResponse rejectApplication(@PathVariable Long id) {
+        return jobApplicationService.rejectJobApplication(id);
     }
 
 }

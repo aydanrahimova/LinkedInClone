@@ -1,5 +1,6 @@
 package az.matrix.linkedinclone.dao.entity;
 
+import az.matrix.linkedinclone.enums.SkillCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
+
 
 @Entity
 @Table(name = "skill")
@@ -20,7 +22,9 @@ public class Skill {
     private Long id;
     @Column(nullable = false)
     private String name;
-    @ManyToMany
-    private List<User> users;
+    @Enumerated(EnumType.STRING)
+    private SkillCategory category;
+    @OneToMany
+    private List<SkillUser> skillUser;
 
 }
