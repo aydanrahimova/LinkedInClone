@@ -5,10 +5,10 @@ import az.matrix.linkedinclone.dto.request.RecoveryPassword;
 import az.matrix.linkedinclone.dto.request.UserRequest;
 import az.matrix.linkedinclone.dto.response.AuthResponse;
 import az.matrix.linkedinclone.service.AuthService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,23 +19,23 @@ public class AuthController {
     private final AuthService authService;
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping("/sign-in")
-    public AuthResponse register(@Validated @RequestBody UserRequest userRequest){
+    @PostMapping("/signup")
+    public AuthResponse register(@Valid @RequestBody UserRequest userRequest) {
         return authService.register(userRequest);
     }
 
-    @PostMapping("/signup")
-    public AuthResponse login(@Validated @RequestBody AuthRequest authRequest){
+    @PostMapping("/sign-in")
+    public AuthResponse login(@Valid @RequestBody AuthRequest authRequest) {
         return authService.login(authRequest);
     }
 
     @PostMapping("/forgot-password")
-    public void requestPasswordReset(@Validated @NotBlank @RequestParam String email){
+    public void requestPasswordReset(@Valid @NotBlank @RequestParam String email) {
         authService.requestPasswordReset(email);
     }
 
-    @PatchMapping("/recovery-password")
-    public void resetPassword(@Validated @RequestBody RecoveryPassword recoveryPassword){
-        authService.resetPassword(recoveryPassword);
+    @PatchMapping("/reset-password")
+    public void resetPassword(@RequestParam @NotBlank String token, @Valid @RequestBody RecoveryPassword recoveryPassword) {
+        authService.resetPassword(token,recoveryPassword);
     }
 }

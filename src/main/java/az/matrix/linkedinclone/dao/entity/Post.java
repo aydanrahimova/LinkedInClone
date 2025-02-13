@@ -17,7 +17,4 @@ public class Post extends ReactionTarget {
     private String text;
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Photo> photos = new ArrayList<>();
-    @OneToMany
-    private List<Comment> comments;
-
 }

@@ -2,10 +2,7 @@ package az.matrix.linkedinclone.dao.entity;
 
 import az.matrix.linkedinclone.enums.EducationDegree;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -15,6 +12,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class Education {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

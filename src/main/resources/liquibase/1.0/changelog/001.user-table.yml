@@ -54,4 +54,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: deactivation_date
-                  type: date
+                  type: TIMESTAMP
+              - column:
+                  name: deactivated_by_admin
+                  type: BOOLEAN

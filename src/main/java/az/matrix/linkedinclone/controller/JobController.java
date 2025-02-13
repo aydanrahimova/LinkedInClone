@@ -2,7 +2,6 @@ package az.matrix.linkedinclone.controller;
 
 import az.matrix.linkedinclone.dto.request.JobFilterDto;
 import az.matrix.linkedinclone.dto.request.JobRequest;
-import az.matrix.linkedinclone.dto.request.JobUpdateRequest;
 import az.matrix.linkedinclone.dto.response.JobResponse;
 import az.matrix.linkedinclone.service.JobService;
 import lombok.RequiredArgsConstructor;
@@ -34,12 +33,12 @@ public class JobController {
     }
 
     @PutMapping("/{id}")
-    public JobResponse editJob(@PathVariable Long id, @Validated @RequestBody JobUpdateRequest updateRequest) {
+    public JobResponse editJob(@PathVariable Long id, @Validated @RequestBody JobRequest updateRequest) {
         return jobService.editJob(id, updateRequest);
     }
 
-    @PatchMapping("/{id}")
-    public JobResponse deactivateJob(@PathVariable Long id){
+    @PatchMapping("/{id}/deactivate")
+    public JobResponse deactivateJob(@PathVariable Long id) {
         return jobService.deactivateJob(id);
     }
 }

@@ -3,12 +3,12 @@ package az.matrix.linkedinclone.controller;
 import az.matrix.linkedinclone.dto.request.ExperienceRequest;
 import az.matrix.linkedinclone.dto.response.ExperienceResponse;
 import az.matrix.linkedinclone.service.ExperienceService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -25,12 +25,12 @@ public class ExperienceController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ExperienceResponse addExperience(@Validated @RequestBody ExperienceRequest experienceRequest) {
+    public ExperienceResponse addExperience(@Valid @RequestBody ExperienceRequest experienceRequest) {
         return experienceService.addExperience(experienceRequest);
     }
 
     @PutMapping("/{id}")
-    public ExperienceResponse editExperience(@PathVariable Long id, @Validated @RequestBody ExperienceRequest experienceRequest) {
+    public ExperienceResponse editExperience(@PathVariable Long id, @Valid @RequestBody ExperienceRequest experienceRequest) {
         return experienceService.editExperience(id, experienceRequest);
     }
 

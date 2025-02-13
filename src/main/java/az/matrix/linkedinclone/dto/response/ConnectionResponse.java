@@ -11,7 +11,8 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ConnectionResponse {
-    private Long receiverId;
+    private Long id;
+    private UserResponse connectedUser;
     private ConnectionStatus status;
     private LocalDate sendTime;
     private LocalDate responseTime;

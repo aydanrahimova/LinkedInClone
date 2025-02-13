@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReactionResponse {
-    private UserResponse user;
+    private Long id;
+    private AuthorResponse author;
     private ReactionType reactionType;
     private LocalDateTime addTime;
     private LocalDateTime editTime;

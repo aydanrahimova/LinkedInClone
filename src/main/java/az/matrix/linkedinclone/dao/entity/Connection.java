@@ -6,6 +6,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "connection")
@@ -18,15 +19,21 @@ import java.time.LocalDate;
 public class Connection {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
     @ManyToOne
     @JoinColumn(name = "sender_id")
-    User sender;
+    private User sender;
     @ManyToOne
     @JoinColumn(name = "receiver_id")
-    User receiver;
+    private User receiver;
     @Enumerated(EnumType.STRING)
-    ConnectionStatus status;
-    LocalDate sendTime;
-    LocalDate responseTime;
+    private ConnectionStatus status;
+    private LocalDateTime sendTime;
+    private LocalDateTime responseTime;
+
+    @PrePersist
+    protected void onCreate() {
+        this.sendTime = LocalDateTime.now();
+    }
+
 }

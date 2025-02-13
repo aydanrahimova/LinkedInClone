@@ -1,6 +1,8 @@
 package az.matrix.linkedinclone.service;
 
 import az.matrix.linkedinclone.dto.response.ConnectionResponse;
+import az.matrix.linkedinclone.dto.response.UserResponse;
+import az.matrix.linkedinclone.enums.ConnectionStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -9,11 +11,9 @@ import org.springframework.stereotype.Service;
 public interface ConnectionService {
     ConnectionResponse sendConnectionRequest(Long receiverId);
 
-    Page<ConnectionResponse> getConnectionsOfUser(Long userId,Pageable pageable);
+    Page<UserResponse> getConnectionsOfUser(Long userId, Pageable pageable);
 
-    ConnectionResponse acceptConnectionRequest(Long id);
-
-    ConnectionResponse rejectConnectionRequest(Long id);
+    ConnectionResponse changeConnectionStatus(Long id, ConnectionStatus connectionStatus);
 
     void deleteConnection(Long id);
 }

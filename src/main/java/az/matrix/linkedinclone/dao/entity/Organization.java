@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +22,7 @@ public class Organization {
     private String logoPath;
     private String overview;
     private String website;
+    @Enumerated(EnumType.STRING)
     private EntityStatus status;
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrganizationAdmin> admins = new ArrayList<>();
@@ -32,4 +32,10 @@ public class Organization {
     @JoinColumn(name = "created_by")
     private User createdBy;
     private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.status = EntityStatus.ACTIVE;
+        this.createdAt = LocalDateTime.now();
+    }
 }

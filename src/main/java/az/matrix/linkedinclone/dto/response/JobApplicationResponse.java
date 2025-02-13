@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobApplicationResponse {
+    private Long id;
     private UserResponse applicant;
     private String resumeUrl;
     private ApplicationStatus status;

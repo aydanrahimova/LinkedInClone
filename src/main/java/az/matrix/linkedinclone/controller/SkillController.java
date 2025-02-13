@@ -3,12 +3,12 @@ package az.matrix.linkedinclone.controller;
 import az.matrix.linkedinclone.dto.request.SkillRequest;
 import az.matrix.linkedinclone.dto.response.SkillResponse;
 import az.matrix.linkedinclone.service.SkillService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,12 +29,12 @@ public class SkillController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public SkillResponse addPredefinedSkill(@Validated @RequestBody SkillRequest skillRequest) {
+    public SkillResponse addPredefinedSkill(@Valid @RequestBody SkillRequest skillRequest) {
         return skillService.addPredefinedSkill(skillRequest);
     }
 
     @PutMapping("/{id}")
-    public SkillResponse editPredefinedSkill(@PathVariable Long id, @Validated @RequestBody SkillRequest skillRequest) {
+    public SkillResponse editPredefinedSkill(@PathVariable Long id, @Valid @RequestBody SkillRequest skillRequest) {
         return skillService.editPredefinedSkill(id, skillRequest);
     }
 

@@ -1,5 +1,6 @@
 package az.matrix.linkedinclone.controller;
 
+import az.matrix.linkedinclone.dto.request.ReactionRequest;
 import az.matrix.linkedinclone.dto.response.ReactionResponse;
 import az.matrix.linkedinclone.enums.ReactionType;
 import az.matrix.linkedinclone.service.ReactionService;
@@ -20,13 +21,12 @@ public class ReactionController {
     public Page<ReactionResponse> getReactions(@RequestParam(name = "targetId") Long targetId,
                                                @RequestParam(name = "reaction", required = false) ReactionType reactionType,
                                                @PageableDefault Pageable pageable) {
-        return reactionService.getReactions(targetId, reactionType, pageable);
+        return reactionService.getReactionsByTargetId(targetId, reactionType, pageable);
     }
 
     @PostMapping
-    public ReactionResponse addReaction(@RequestParam(name = "targetId") Long targetId,
-                                        @RequestParam("reaction") ReactionType reactionType) {
-        return reactionService.addReaction(targetId, reactionType);
+    public ReactionResponse addReaction(@RequestBody ReactionRequest reactionRequest) {
+        return reactionService.addReaction(reactionRequest);
     }
 
     @PatchMapping("/{id}")

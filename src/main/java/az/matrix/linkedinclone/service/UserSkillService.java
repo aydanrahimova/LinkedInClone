@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 public interface UserSkillService {
     SkillUserResponse addSkillToUser(SkillUserRequest skillUserRequest);
 
-    Page<SkillUserResponse> getSkillsOfUser(Long userId, Pageable pageable);
+    Page<SkillUserResponse> getSkillsByUserId(Long userId, Pageable pageable);
 
     SkillUserResponse editSkillOfUser(Long id,SkillUserRequest skillUserRequest);
 

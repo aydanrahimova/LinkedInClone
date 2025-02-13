@@ -3,12 +3,12 @@ package az.matrix.linkedinclone.controller;
 import az.matrix.linkedinclone.dto.request.EducationRequest;
 import az.matrix.linkedinclone.dto.response.EducationResponse;
 import az.matrix.linkedinclone.service.EducationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -24,19 +24,19 @@ public class EducationController {
         return educationService.getEducationsByUserId(userId, pageable);
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public EducationResponse addEducation(@Validated @RequestBody EducationRequest dto) {
-        return educationService.addEducation(dto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public EducationResponse addEducation(@Valid @RequestBody EducationRequest educationRequest) {
+        return educationService.addEducation(educationRequest);
     }
 
     @PutMapping("/{id}")
-    public EducationResponse editEducation(@PathVariable Long id, @Validated @RequestBody EducationRequest educationDto) {
-        return educationService.editEducation(id, educationDto);
+    public EducationResponse editEducation(@PathVariable Long id, @Valid @RequestBody EducationRequest educationRequest) {
+        return educationService.editEducation(id, educationRequest);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteEducation(@PathVariable Long id) {
         educationService.deleteEducation(id);
     }

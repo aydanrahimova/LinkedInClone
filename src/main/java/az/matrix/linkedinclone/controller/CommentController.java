@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,27 +18,25 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping
-    public Page<CommentResponse> getCommentsForPost(@RequestParam Long postId, @PageableDefault Pageable pageable){
-        return commentService.getCommentsForPost(postId,pageable);
+    public Page<CommentResponse> getCommentsForPost(@RequestParam Long postId, @PageableDefault Pageable pageable) {
+        return commentService.getCommentsForPost(postId, pageable);
     }
 
     @PostMapping
-    public CommentResponse addComment(@RequestParam Long postId, @Valid @RequestBody CommentRequest commentRequest){
-        return commentService.addComment(postId,commentRequest);
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentResponse addComment(@Valid @RequestBody CommentRequest commentRequest) {
+        return commentService.addComment(commentRequest);
     }
 
     @PatchMapping("/{id}")
-    public CommentResponse editComment(@PathVariable Long id, @Valid @RequestBody CommentRequest commentRequest){
-        return commentService.editComment(id,commentRequest);
+    public CommentResponse editComment(@PathVariable Long id, @Valid @RequestBody CommentRequest commentRequest) {
+        return commentService.editComment(id, commentRequest);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteComment(@PathVariable Long id){
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id);
     }
 
-    @PostMapping("/{id}/reply")
-    public CommentResponse replyToComment(@PathVariable Long id,@Valid @RequestBody CommentRequest commentRequest){
-        return commentService.replyToComment(id,commentRequest);
-    }
 }

@@ -1,48 +1,44 @@
 package az.matrix.linkedinclone.service.impl;
 
 import az.matrix.linkedinclone.dao.entity.Skill;
-import az.matrix.linkedinclone.dao.repo.SkillRepo;
+import az.matrix.linkedinclone.dao.entity.User;
+import az.matrix.linkedinclone.dao.repo.SkillRepository;
 import az.matrix.linkedinclone.dto.request.SkillRequest;
 import az.matrix.linkedinclone.dto.response.SkillResponse;
 import az.matrix.linkedinclone.exception.AlreadyExistException;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.mapper.SkillMapper;
 import az.matrix.linkedinclone.service.SkillService;
+import az.matrix.linkedinclone.utility.AuthHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class SkillServiceImpl implements SkillService {
-    private final SkillRepo skillRepo;
+    private final SkillRepository skillRepository;
     private final SkillMapper skillMapper;
+    private final AuthHelper authHelper;
 
     @Override
     public SkillResponse getSkill(Long id) {
-        String currentAdminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of getting skill with ID {} started by admin {}", id, currentAdminEmail);
-        Skill skill = skillRepo.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Failed to get skill: Skill with ID {} not found", id);
-                    return new ResourceNotFoundException("SKILL_NOT_FOUND");
-                });
+        log.info("Getting skill with ID {} started", id);
+        Skill skill = skillRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Skill.class));
+        SkillResponse response = skillMapper.toDto(skill);
         log.info("Skill with ID {} successfully returned", id);
-        return skillMapper.toDto(skill);
+        return response;
     }
 
     @Override
     public Page<SkillResponse> getPredefinedSkills(Pageable pageable) {
-        String currentAdminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of getting all predefined skill started by admin {}", currentAdminEmail);
-        Page<Skill> skills = skillRepo.findAll(pageable);
+        log.info("Getting all predefined skill started");
+        Page<Skill> skills = skillRepository.findAll(pageable);
         Page<SkillResponse> skillPage = skills.map(skillMapper::toDto);
         log.info("All predefined skill returned successfully");
         return skillPage;
@@ -51,50 +47,43 @@ public class SkillServiceImpl implements SkillService {
     @Override
     @Transactional
     public SkillResponse addPredefinedSkill(SkillRequest skillRequest) {
-        String currentAdminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of adding new skill started by admin {}", currentAdminEmail);
-        Skill skill = skillMapper.toEntity(skillRequest);
-        if (skillRepo.existsByNameAndCategory(skill.getName(), skill.getCategory())) {
-            log.warn("Failed to add new skill: Skill with the same name {} and category {} already exists.", skill.getName(), skill.getCategory());
+        User authroticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Adding new skill started by admin with ID {}", authroticatedUser.getId());
+        if (skillRepository.existsByNameAndCategory(skillRequest.getName(), skillRequest.getCategory())) {
+            log.error("Failed to add new skill: Skill with the same name {} and category {} already exists.", skillRequest.getName(), skillRequest.getCategory());
             throw new AlreadyExistException("SKILL_ALREADY_EXISTS");
         }
-        skillRepo.save(skill);
-        log.info("New skill is successfully added by admin {}", currentAdminEmail);
-        return skillMapper.toDto(skill);
+        Skill skill = skillMapper.toEntity(skillRequest);
+        skillRepository.save(skill);
+        SkillResponse response = skillMapper.toDto(skill);
+        log.info("New skill is successfully added by admin with ID {}", authroticatedUser.getId());
+        return response;
     }
 
     @Override
     @Transactional
     public SkillResponse editPredefinedSkill(Long id, SkillRequest skillRequest) {
-        String currentAdminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of editing skill with ID {} started by admin {}", id, currentAdminEmail);
-        Skill skill = skillRepo.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Failed to edit skill: Skill with ID {} not found", id);
-                    return new ResourceNotFoundException("SKILL_NOT_FOUND");
-                });
-        skillMapper.mapToUpdate(skill, skillRequest);
-        if (skillRepo.existsByNameAndCategory(skill.getName(), skill.getCategory())) {
-            log.warn("Failed to edit skill: Skill with the same name {} and category {} already exists.", skill.getName(), skill.getCategory());
+        User authroticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Editing skill with ID {} started by admin with ID {}", id, authroticatedUser.getId());
+        Skill skill = skillRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Skill.class));
+        if (skillRepository.existsByNameAndCategory(skillRequest.getName(), skillRequest.getCategory())) {
+            log.error("Failed to edit skill: Skill with the same name {} and category {} already exists.", skill.getName(), skill.getCategory());
             throw new AlreadyExistException("SKILL_ALREADY_EXISTS");
         }
-        skillRepo.save(skill);
-        log.info("Skill with ID {} successfully edited by admin {}", id, currentAdminEmail);
-        return skillMapper.toDto(skill);
+        skillMapper.mapToUpdate(skill, skillRequest);
+        skillRepository.save(skill);
+        SkillResponse response = skillMapper.toDto(skill);
+        log.info("Skill with ID {} successfully edited by admin with ID {}", id, authroticatedUser.getId());
+        return response;
     }
 
     @Override
     @Transactional
     public void deletePredefinedSkill(Long id) {
-        String currentAdminEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of deletion skill with ID {} started by admin {}", id, currentAdminEmail);
-        Skill skill = skillRepo.findById(id)
-                .orElseThrow(() -> {
-                    log.warn("Failed to delete skill: Skill with ID {} not found", id);
-                    return new ResourceNotFoundException("SKILL_NOT_FOUND");
-                });
-        skillRepo.delete(skill);
+        User authroticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Deleting skill with ID {} started by admin with ID {}", id, authroticatedUser.getId());
+        Skill skill = skillRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Skill.class));
+        skillRepository.delete(skill);
     }
-
 
 }

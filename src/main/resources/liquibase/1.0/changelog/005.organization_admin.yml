@@ -25,7 +25,7 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     foreignKeyName: fk_organization_admin_organization
-                    references: users(id)
+                    references: organization(id)
               - column:
                   name: role
                   type: VARCHAR(255)

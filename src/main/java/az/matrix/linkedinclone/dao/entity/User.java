@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,17 +39,8 @@ public class User implements UserDetails {
     private LocalDate birthDate;
     @Enumerated(EnumType.STRING)
     private EntityStatus status;
-    private LocalDate deactivationDate;
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<OrganizationAdmin> adminRoles = new ArrayList<>();
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Education> education;
-    @ManyToMany
-    private List<Skill> skills;
-    @OneToMany(mappedBy = "user",  fetch = FetchType.LAZY,cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Experience> experiences;
-    @OneToMany(mappedBy = "user",  fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Project> projects;
+    private LocalDateTime deactivationDate;
+    private Boolean deactivatedByAdmin;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_authority",
@@ -60,8 +51,8 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return authorities.stream() // Stream through the authorities
-                .map(authority -> new SimpleGrantedAuthority("ROLE_" + authority.getName())) // Convert each Authority to GrantedAuthority
+        return authorities.stream()
+                .map(authority -> new SimpleGrantedAuthority("ROLE_" + authority.getName()))
                 .collect(Collectors.toList());
     }
 

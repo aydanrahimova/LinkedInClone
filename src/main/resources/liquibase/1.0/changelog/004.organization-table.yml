@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: create-job-table
+      id: create-organization-table
       author: aydanrahimova
       changes:
         - createTable:

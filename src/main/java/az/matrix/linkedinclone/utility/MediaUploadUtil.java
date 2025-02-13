@@ -1,6 +1,7 @@
 package az.matrix.linkedinclone.utility;
 
 import az.matrix.linkedinclone.exception.FileIOException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,7 @@ public class MediaUploadUtil {
         return uploadFile(file, UPLOAD_DIR, MimeTypeUtil.MEDIA_FOR_POST);
     }
 
+//    @SneakyThrows
     private static String uploadFile(MultipartFile file, String UPLOAD_DIR, List<String> validTypes) {
         try {
             validateFile(file, validTypes);

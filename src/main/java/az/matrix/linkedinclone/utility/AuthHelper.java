@@ -1,7 +1,7 @@
 package az.matrix.linkedinclone.utility;
 
 import az.matrix.linkedinclone.dao.entity.User;
-import az.matrix.linkedinclone.dao.repo.UserRepo;
+import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AuthHelper {
 
-    private final UserRepo userRepo;
+    private final UserRepository userRepository;
 
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -28,7 +28,7 @@ public class AuthHelper {
         String authenticatedEmail = authentication.getName();
         log.debug("Authenticated user email: {}", authenticatedEmail);
 
-        return userRepo.findByEmail(authenticatedEmail)
+        return userRepository.findByEmail(authenticatedEmail)
                 .orElseThrow(() -> {
                     log.error("User with email {} not found in the database", authenticatedEmail);
                     return new ResourceNotFoundException("USER_NOT_FOUND");

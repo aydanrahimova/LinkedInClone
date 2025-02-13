@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,7 +25,7 @@ public class Skill {
     private String name;
     @Enumerated(EnumType.STRING)
     private SkillCategory category;
-    @OneToMany
-    private List<SkillUser> skillUser;
+//    @OneToMany
+//    private List<SkillUser> skillUser = new ArrayList<>();
 
 }

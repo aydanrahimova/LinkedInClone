@@ -1,6 +1,6 @@
 package az.matrix.linkedinclone.config;
 
-import az.matrix.linkedinclone.config.enums.AuthUrlMapping;
+import az.matrix.linkedinclone.config.enums.SecurityUrls;
 import az.matrix.linkedinclone.config.enums.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -30,15 +30,15 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(AuthUrlMapping.PERMIT_ALL.getUrls()).permitAll()
-                        .requestMatchers(HttpMethod.GET, AuthUrlMapping.USER.getUrls()).hasAnyAuthority(Role.ROLE_USER.name())
-                        .requestMatchers(AuthUrlMapping.ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_ADMIN.name())
-                        .requestMatchers(AuthUrlMapping.ANY_AUTHENTICATED.getUrls()).authenticated()
+                .authorizeHttpRequests(authorize ->
+                        authorize
+                                .requestMatchers(SecurityUrls.PERMIT_ALL.getUrls()).permitAll()
+                                .requestMatchers(HttpMethod.GET, SecurityUrls.USER_ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_USER.name(), Role.ROLE_ADMIN.name())
+                                .requestMatchers(SecurityUrls.ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_ADMIN.name())
+                                .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-        ;
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

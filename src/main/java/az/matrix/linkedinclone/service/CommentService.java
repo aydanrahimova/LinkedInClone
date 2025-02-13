@@ -10,11 +10,10 @@ import org.springframework.stereotype.Service;
 public interface CommentService {
     Page<CommentResponse> getCommentsForPost(Long postId, Pageable pageable);
 
-    CommentResponse addComment(Long postId, CommentRequest commentRequest);
+    CommentResponse addComment(CommentRequest commentRequest);
 
     CommentResponse editComment(Long id,CommentRequest commentRequest);
 
     void deleteComment(Long id);
 
-    CommentResponse replyToComment(Long id,CommentRequest commentRequest);
 }

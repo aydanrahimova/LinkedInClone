@@ -6,14 +6,19 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class JobResponse {
+    private Long id;
     private String title;
     private EmploymentType employmentType;
     private String description;
     private String organizationName;
     private EntityStatus status;
-//    private List<Skill> skills;
+    private LocalDate applicationDeadline;
+    private List<SkillResponse> skills;
 }

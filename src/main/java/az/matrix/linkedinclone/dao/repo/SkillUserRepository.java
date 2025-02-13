@@ -6,6 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SkillUserRepo extends JpaRepository<SkillUser,Long> {
-    Page<SkillUser> findAllByUser(User user, Pageable pageable);
+import java.util.Optional;
+
+
+public interface SkillUserRepository extends JpaRepository<SkillUser, Long> {
+
+    Page<SkillUser> findAllByUserId(Long userId, Pageable pageable);
+
+    Optional<SkillUser> findByIdAndUser(Long id, User authenticatedUser);
 }

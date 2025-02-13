@@ -1,9 +1,11 @@
 package az.matrix.linkedinclone.dao.entity;
 
+import az.matrix.linkedinclone.enums.AuthorType;
 import az.matrix.linkedinclone.enums.ReactionType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 
@@ -21,11 +23,13 @@ public class Reaction {
     @ManyToOne
     @JoinColumn(name = "target_id")
     private ReactionTarget target;
-    @ManyToOne
-    private User user;
+
+    private Long authorId;
+    @Enumerated(EnumType.STRING)
+    private AuthorType authorType;
+
     @Enumerated(EnumType.STRING)
     private ReactionType reactionType;
-    @CreationTimestamp
     private LocalDateTime addTime;
     private LocalDateTime editTime;
     private Boolean isEdited;

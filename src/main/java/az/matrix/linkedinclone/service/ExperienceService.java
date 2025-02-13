@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface ExperienceService {
-    Page<ExperienceResponse> getExperiencesByUserId(Long userId, @PageableDefault Pageable pageable);
+    Page<ExperienceResponse> getExperiencesByUserId(Long userId, Pageable pageable);
 
     ExperienceResponse addExperience(ExperienceRequest experienceRequest);
 

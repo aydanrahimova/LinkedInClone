@@ -14,10 +14,9 @@ public class PostResponse {
     private Long id;
     private List<String> photosPath;
     private String text;
-    private UserResponse user;
+    private AuthorResponse author;
     private LocalDateTime addTime;
     private LocalDateTime editTime;
     private Boolean isEdited;
-    private List<ReactionResponse> reactions;
 }
 

@@ -2,7 +2,6 @@ package az.matrix.linkedinclone.service;
 
 import az.matrix.linkedinclone.dto.request.JobFilterDto;
 import az.matrix.linkedinclone.dto.request.JobRequest;
-import az.matrix.linkedinclone.dto.request.JobUpdateRequest;
 import az.matrix.linkedinclone.dto.response.JobResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,7 +15,7 @@ public interface JobService {
 
     JobResponse getJob(Long id);
 
-    JobResponse editJob(Long id, JobUpdateRequest updateRequest);
+    JobResponse editJob(Long id, JobRequest jobRequest);
 
     JobResponse deactivateJob(Long id);
 }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrganizationAdminResponse {
-    private UserResponse userResponse;
+    private Long id;
+    private UserResponse admin;
     private OrganizationRole role;
 }

@@ -19,10 +19,10 @@ public class JobApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @ManyToOne
-    @JoinColumn(name = "user_id",nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User applicant;
     @ManyToOne
-    @JoinColumn(name = "job_id",nullable = false)
+    @JoinColumn(name = "job_id", nullable = false)
     private Job job;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -31,5 +31,10 @@ public class JobApplication {
     private LocalDate applicationDate;
     @Column(nullable = false)
     private String resumeUrl;
+
+    @PrePersist
+    protected void OnCreate() {
+        this.applicationDate = LocalDate.now();
+    }
 
 }

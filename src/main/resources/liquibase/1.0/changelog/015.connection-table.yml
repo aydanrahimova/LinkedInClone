@@ -23,7 +23,7 @@ databaseChangeLog:
                   defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: response_time
-                  type: DATE
+                  type: TIMESTAMP
               - column:
                   name: sender_id
                   type: BIGINT

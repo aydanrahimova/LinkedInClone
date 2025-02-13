@@ -20,7 +20,7 @@ databaseChangeLog:
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
               - column:
-                  name: resumeUrl
+                  name: resume_url
                   type: VARCHAR
               - column:
                   name: user_id

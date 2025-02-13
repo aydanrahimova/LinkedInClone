@@ -68,11 +68,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)//409
     @ExceptionHandler(AlreadyExistException.class)
     public ExceptionDto handleAlreadyExistException(AlreadyExistException ex) {
+        log.error(ex.getMessage());
         return new ExceptionDto(ex.getMessage());
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ExceptionDto handleGenericException(RuntimeException ex){
+    public ExceptionDto handleGenericException(RuntimeException ex) {
         return new ExceptionDto(ex.getMessage());
     }
 

@@ -1,6 +1,7 @@
 package az.matrix.linkedinclone.controller;
 
 import az.matrix.linkedinclone.dto.response.JobApplicationResponse;
+import az.matrix.linkedinclone.enums.ApplicationStatus;
 import az.matrix.linkedinclone.service.JobApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -31,15 +32,13 @@ public class JobApplicationController {
         return jobApplicationService.viewApplication(id);
     }
 
-    //bir api yaz
-    @PatchMapping("/{id}/accept")
-    public JobApplicationResponse acceptJobApplication(@PathVariable Long id) {
-        return jobApplicationService.acceptJobApplication(id);
+    @PatchMapping("/{id}/status")
+    public JobApplicationResponse acceptJobApplication(@PathVariable Long id, @RequestParam ApplicationStatus applicationStatus) {
+        return jobApplicationService.changeApplicationStatus(id,applicationStatus);
     }
 
-    @PatchMapping("/{id}/reject")
-    public JobApplicationResponse rejectApplication(@PathVariable Long id) {
-        return jobApplicationService.rejectJobApplication(id);
+    @PostMapping("/{id}/upload-resume")
+    public String uploadResume(@PathVariable Long id){
+        return jobApplicationService.uploadResume(id);
     }
-
 }

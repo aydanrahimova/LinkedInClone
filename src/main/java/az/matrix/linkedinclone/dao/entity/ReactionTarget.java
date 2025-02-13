@@ -1,8 +1,10 @@
 package az.matrix.linkedinclone.dao.entity;
 
+import az.matrix.linkedinclone.enums.AuthorType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -15,20 +17,16 @@ public abstract class ReactionTarget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthorType authorType;
+    @Column(nullable = false)
+    private Long authorId;
     @OneToMany(mappedBy = "target", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Reaction> reactions;
-
-    @CreationTimestamp
     private LocalDateTime addTime;
-
     private LocalDateTime editTime;
     private Boolean isEdited;
-
     @PrePersist
     protected void onCreate() {
         this.addTime = LocalDateTime.now();

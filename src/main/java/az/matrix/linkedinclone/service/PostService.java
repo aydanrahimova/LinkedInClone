@@ -2,6 +2,7 @@ package az.matrix.linkedinclone.service;
 
 import az.matrix.linkedinclone.dto.request.PostRequest;
 import az.matrix.linkedinclone.dto.response.PostResponse;
+import az.matrix.linkedinclone.enums.AuthorType;
 import az.matrix.linkedinclone.enums.ReactionType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,14 +14,16 @@ import java.util.List;
 
 @Service
 public interface PostService {
-    PostResponse createPost(String text, List<MultipartFile> photos) throws IOException;
+
+    Page<PostResponse> getPostsOfProfile(Long authorId, AuthorType authorType, Pageable pageable);
 
     PostResponse getPost(Long postId);
 
-    PostResponse editPost(Long postId,PostRequest postRequest);
+    PostResponse createPost(PostRequest postRequest,List<MultipartFile> files) throws IOException;
+
+    PostResponse editPost(Long postId, PostRequest postRequest);
 
     void deletePost(Long postId);
 
-    Page<PostResponse> getPosts(Pageable pageable);
 
 }

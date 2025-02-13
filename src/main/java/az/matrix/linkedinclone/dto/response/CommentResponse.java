@@ -10,7 +10,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentResponse {
-    private UserResponse user;
+    private Long id;
+    private AuthorResponse author;
     private String content;
     private List<CommentResponse> replies;
 }

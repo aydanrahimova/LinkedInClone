@@ -3,12 +3,14 @@ package az.matrix.linkedinclone.service.impl;
 import az.matrix.linkedinclone.dao.entity.Organization;
 import az.matrix.linkedinclone.dao.entity.OrganizationAdmin;
 import az.matrix.linkedinclone.dao.entity.User;
-import az.matrix.linkedinclone.dao.repo.OrganizationAdminRepo;
-import az.matrix.linkedinclone.dao.repo.OrganizationRepo;
-import az.matrix.linkedinclone.dao.repo.UserRepo;
+import az.matrix.linkedinclone.dao.repo.OrganizationAdminRepository;
+import az.matrix.linkedinclone.dao.repo.OrganizationRepository;
+import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.dto.response.OrganizationAdminResponse;
+import az.matrix.linkedinclone.enums.EntityStatus;
 import az.matrix.linkedinclone.enums.OrganizationPermission;
 import az.matrix.linkedinclone.enums.OrganizationRole;
+import az.matrix.linkedinclone.exception.ForbiddenException;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.exception.UnauthorizedException;
 import az.matrix.linkedinclone.mapper.OrganizationAdminMapper;
@@ -26,138 +28,25 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 public class OrganizationAdminServiceImpl implements OrganizationAdminService {
-    private final OrganizationAdminRepo organizationAdminRepo;
-    private final UserRepo userRepo;
-    private final OrganizationRepo organizationRepo;
+    private final OrganizationAdminRepository organizationAdminRepository;
+    private final UserRepository userRepository;
     private final OrganizationAdminMapper organizationAdminMapper;
     private final AuthHelper authHelper;
+    private final OrganizationRepository organizationRepository;
 
     @Override
-    public boolean isAdmin(User admin, Organization organization) {
-        return organizationAdminRepo.existsByAdminAndOrganization(admin, organization);
-    }
-
-    @Override
-    @Transactional
-    public OrganizationAdminResponse addAdmin(Long id, Long userId, OrganizationRole role) {
-        User admin = authHelper.getAuthenticatedUser();
-
-        log.info("Operation of adding new admin of organization with ID {} by user with email {} started.", id, admin.getEmail());
-
-        User newAdmin = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException(User.class));
-
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("Failed to add new admin to organization page with ID {}:User {} is not admin of that page", id, admin.getEmail());
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (!organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            log.warn("Failed to add new admin to organization page with ID {}:For adding new admin the admin must be SuperAdmin", id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
-
-        Organization organization = organizationAdmin.getOrganization();
-
-        OrganizationAdmin organizationAdmin1 = OrganizationAdmin.builder()
-                .admin(newAdmin)
-                .organization(organization)
-                .role(role)
-                .build();
-
-//        OrganizationAdmin newOrganizationAdmin = new OrganizationAdmin();
-//        newOrganizationAdmin.setOrganization(organization);
-//        newOrganizationAdmin.setAdmin(newAdmin);
-//        newOrganizationAdmin.setRole(role);
-//
-//        organization.getAdmins().add(newOrganizationAdmin);
-//        organizationRepo.save(organization);
-        organizationAdminRepo.save(organizationAdmin1);
-        log.info("New admin added successfully to organization with ID {}", id);
-
-        return organizationAdminMapper.toDto(organizationAdmin);
-    }
-
-    @Override
-    @Transactional
-    public OrganizationAdminResponse changeAdminRole(Long id, Long userId, OrganizationRole organizationRole) {
-        User admin = authHelper.getAuthenticatedUser();
-        log.info("Operation of changing admin role for user with ID {} in organization with ID {} by user {} started.", userId, id, admin.getEmail());
-
-        User adminToChange = userRepo.findById(userId)
-                .orElseThrow(() -> {
-                    log.warn("Failed to change admin role for organization with ID {}: User with ID {} not found", id, userId);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
-                });
-
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("User {} is not an admin of organization with ID {}", admin.getEmail(), id);
-                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        OrganizationAdmin organizationAdminToChange = organizationAdminRepo.findByAdminAndOrganizationId(adminToChange, id)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} is not an admin of organization with ID {}", userId, id);
-                    return new ResourceNotFoundException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            organizationAdminToChange.setRole(organizationRole);  // Change the admin role
-            organizationAdminRepo.save(organizationAdminToChange); // Save the updated admin
-            log.info("Successfully changed the role of user {} in organization with ID {}.", userId, id);
-        } else {
-            log.warn("User {} does not have permission to manage roles in organization with ID {}", admin.getEmail(), id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
-        return organizationAdminMapper.toDto(organizationAdmin);
-    }
-
-    @Override
-    public void deleteAdmin(Long id, Long userId) {
-        User admin = authHelper.getAuthenticatedUser();
-        log.info("Operation of deleting admin with ID {} from organization with ID {} by user {} started.", userId, id, admin.getEmail());
-
-        User adminToDelete = userRepo.findById(userId).orElseThrow(() -> new ResourceNotFoundException(User.class));
-
-        // Ensure the admin to be deleted is an admin in the specified organization
-        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminAndOrganizationId(admin, id)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} is not an admin of organization with ID {}", userId, id);
-                    return new ResourceNotFoundException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-        OrganizationAdmin organizationAdminToDelete = organizationAdminRepo.findByAdminAndOrganizationId(adminToDelete, id)
-                .orElseThrow(() -> {
-                    log.warn("User with ID {} is not an admin of organization with ID {}", userId, id);
-                    return new ResourceNotFoundException("USER_NOT_ADMIN_OF_ORGANIZATION");
-                });
-
-        if (organizationAdmin.getRole().hasPermission(OrganizationPermission.MANAGE_ROLES)) {
-            if (admin.getId().equals(adminToDelete.getId()) && organizationAdminRepo.existsByOrganizationIdAndRole(id, OrganizationRole.SUPER_ADMIN)) {
-                log.warn("User {} cannot delete themselves as an admin in organization with ID {}: as there is not another Super Admin", admin.getEmail(), id);
-                throw new UnauthorizedException("CANNOT_DELETE_SELF_AS_ADMIN");
-            }
-
-            organizationAdminRepo.delete(organizationAdminToDelete);
-            log.info("Successfully deleted admin with ID {} from organization with ID {}.", userId, id);
-
-        } else {
-            log.warn("User {} does not have permission to manage roles in organization with ID {}", admin.getEmail(), id);
-            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-        }
+    public boolean isAdmin(User admin, Long organizationId) {
+        return organizationAdminRepository.existsByAdminAndOrganizationId(admin, organizationId);
     }
 
     @Override
     public Page<OrganizationAdminResponse> getAllAdmins(Long organizationId, Pageable pageable) {
-
-        User admin = authHelper.getAuthenticatedUser();
-
-        Organization organization = organizationRepo.findById(organizationId).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
-
-        if (!isAdmin(admin, organization)) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Getting all admins of organization with ID {} started by user with ID {}", organizationId, authenticatedUser.getId());
+        if (!isAdmin(authenticatedUser, organizationId)) {
             throw new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
         }
-        Page<OrganizationAdmin> admins = organizationAdminRepo.findAllByOrganizationId(organizationId, pageable);
+        Page<OrganizationAdmin> admins = organizationAdminRepository.findAllByOrganizationId(organizationId, pageable);
 
         Page<OrganizationAdminResponse> adminResponses = admins.map(organizationAdminMapper::toDto);
 
@@ -167,21 +56,90 @@ public class OrganizationAdminServiceImpl implements OrganizationAdminService {
 
     }
 
+    @Override
+    @Transactional
+    public OrganizationAdminResponse addAdmin(Long organizationId, Long userId, OrganizationRole role) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Adding new admin for organization with ID {} by user with ID {} started.", organizationId, authenticatedUser.getId());
+        User newAdmin = userRepository.findByIdAndStatus(userId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(User.class));
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
+        OrganizationAdmin newOrganizationAdmin = OrganizationAdmin.builder()
+                .admin(newAdmin)
+                .organization(organization)
+                .role(role)
+                .build();
+        organizationAdminRepository.save(newOrganizationAdmin);
+        OrganizationAdminResponse response = organizationAdminMapper.toDto(newOrganizationAdmin);
+        log.info("New admin added successfully to organization with ID {}", organizationId);
 
-//    private OrganizationAdmin validateAdminAccess(Long organizationId, String currentUserEmail, OrganizationPermission requiredPermission) {
-//        OrganizationAdmin organizationAdmin = organizationAdminRepo.findByAdminEmailAndOrganizationId(currentUserEmail, organizationId)
-//                .orElseThrow(() -> {
-//                    log.warn("User {} is not an admin of organization with ID {}", currentUserEmail, organizationId);
-//                    return new UnauthorizedException("USER_NOT_ADMIN_OF_ORGANIZATION");
-//                });
-//
-//        if (!organizationAdmin.getRole().hasPermission(requiredPermission)) {
-//            log.warn("User {} does not have sufficient permissions to perform this action.", currentUserEmail);
-//            throw new UnauthorizedException("INSUFFICIENT_PERMISSIONS");
-//        }
-//
-//        return organizationAdmin;
-//    }
+        return response;
+    }
+
+    @Override
+    @Transactional
+    public OrganizationAdminResponse changeRole(Long organizationId, Long organizationAdminId, OrganizationRole organizationRole) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Changing admin role {} in organization {} by user {} started.", organizationAdminId, organizationId, authenticatedUser.getId());
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        OrganizationAdmin organizationAdminToChange = organizationAdminRepository.findByIdAndOrganizationId(organizationAdminId, organizationId).orElseThrow(() -> new ResourceNotFoundException(OrganizationAdmin.class));
+        validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
+        if (organizationAdminToChange.getAdmin().getId().equals(organization.getCreatedBy().getId())) {
+            log.error("Failed to change role: Organization creator's role can't be changed.");
+            throw new ForbiddenException("ROLE_CAN'T_BE_CHANGED");
+        }
+        organizationAdminToChange.setRole(organizationRole);
+        log.info("Successfully changed the role of admin {} in organization {}.", organizationAdminId, organizationId);
+        return organizationAdminMapper.toDto(organizationAdminToChange);
+    }
 
 
+    @Override
+    @Transactional
+    public void deleteAdmin(Long organizationAdminId, Long organizationId) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Deleting admin {} of organization {} started by user {}", organizationAdminId, organizationId, authenticatedUser.getId());
+
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+
+
+        OrganizationAdmin organizationAdminToDelete = organizationAdminRepository.findById(organizationAdminId)
+                .orElseThrow(() -> new ResourceNotFoundException(OrganizationAdmin.class));
+
+        if (!organizationAdminToDelete.getOrganization().getId().equals(organizationId)) {
+            throw new ForbiddenException("Admin does not belong to this organization.");
+        }
+
+        validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
+
+        if (organizationAdminToDelete.getAdmin().getId().equals(organization.getCreatedBy().getId())) {
+            log.error("Failed to delete admin: Organization creator can't be deleted.");
+            throw new ForbiddenException("CANT_BE_DELETED");
+        }
+
+        long adminCount = organizationAdminRepository.countByOrganizationId(organizationId);
+        if (adminCount <= 1) {
+            throw new ForbiddenException("Cannot delete the last admin of the organization.");
+        }
+
+        organizationAdminRepository.delete(organizationAdminToDelete);
+        log.info("Successfully deleted admin {} from organization {}.", organizationAdminId, organizationId);
+    }
+
+    public void validateAdminPermission(Long organizationId, User authenticatedUser, OrganizationPermission requiredPermission) {
+        OrganizationAdmin organizationAdmin = organizationAdminRepository.findByAdminIdAndOrganizationId(authenticatedUser.getId(), organizationId)
+                .orElseThrow(() -> {
+                    log.error("User with ID {} is not an admin of organization with ID {}", authenticatedUser.getId(), organizationId);
+                    return new ForbiddenException("User is not an admin of this organization.");
+                });
+
+        if (!organizationAdmin.getRole().hasPermission(requiredPermission)) {
+            log.error("User with ID {} does not have permission to {}", authenticatedUser.getId(), requiredPermission.name());
+            throw new ForbiddenException("User does not have permission to " + requiredPermission.name());
+        }
+    }
 }
+
+
+
+

@@ -11,23 +11,33 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.Optional;
 
 public interface ConnectionRepository extends JpaRepository<Connection, Long> {
-    boolean existsBySenderAndReceiver(User sender, User receiver);
 
-    Page<Connection> findAllBySenderAndStatus(User user, ConnectionStatus connectionStatus, Pageable pageable);
-
-    Optional<Connection> findBySenderAndIdAndStatus(User user, Long id, ConnectionStatus connectionStatus);
-
-    Page<Connection> findAllBySenderOrReceiverAndStatus(User sender, User receiver, ConnectionStatus connectionStatus, Pageable pageable);
-
-    @Query("SELECT c FROM Connection c WHERE c.sender = :user OR c.receiver = :user")
-    Page<Connection> findAllConnectionsByUser(User user, Pageable pageable);
-
-    @Query("SELECT c FROM Connection c WHERE (c.sender = :user1 AND c.receiver = :user2) OR (c.sender = :user2 AND c.receiver = :user)")
+    @Query("SELECT c FROM Connection c WHERE (c.sender = :user1 AND c.receiver = :user2) OR (c.sender = :user2 AND c.receiver = :user1)")
     Connection findConnectionBetweenUsers(User user1, User user2);
-
 
     @Query("SELECT c FROM Connection c WHERE c.id = :id AND c.status = :status AND (c.sender = :user OR c.receiver = :user)")
     Connection findByIdAndStatusAndUser(Long id, ConnectionStatus status, User user);
 
     Optional<Connection> findByIdAndReceiverAndStatus(Long id, User user, ConnectionStatus oldStatus);
+
+    @Query("SELECT c FROM Connection c WHERE (c.sender.id = :userId OR c.receiver.id = :userId) AND c.status = :status ")
+    Page<Connection> findAllConnectionsByUserAndStatus(Long userId, ConnectionStatus status, Pageable pageable);
+
+    @Query("""
+                SELECT u FROM User u
+                WHERE u.id IN (
+                    SELECT c1.receiver.id FROM Connection c1
+                    JOIN Connection c2 ON c1.receiver.id = c2.receiver.id
+                    WHERE c1.sender.id = :user1Id AND c2.sender.id = :user2Id
+                      AND c1.status = :connectionStatus AND c2.status = :connectionStatus
+                   \s
+                    UNION\s
+                   \s
+                    SELECT c1.sender.id FROM Connection c1
+                    JOIN Connection c2 ON c1.sender.id = c2.sender.id
+                    WHERE c1.receiver.id = :user1Id AND c2.receiver.id = :user2Id
+                      AND c1.status = :connectionStatus AND c2.status = :connectionStatus
+                )
+            """)
+    Page<User> findMutualConnectionBetweenUsers(Long user1Id, Long user2Id, ConnectionStatus connectionStatus, Pageable pageable);
 }

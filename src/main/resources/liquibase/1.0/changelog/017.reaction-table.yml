@@ -11,8 +11,7 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     autoIncrement: true
-                    constraints:
-                      primaryKey: true
+                    primaryKey: true
               - column:
                   name: target_id
                   type: BIGINT
@@ -21,12 +20,15 @@ databaseChangeLog:
                     foreignKeyName: fk_target_reaction
                     references: reaction_target(id)
               - column:
-                  name: user_id
+                  name: author_id
                   type: BIGINT
                   constraints:
-                    nullable: true
-                    foreignKeyName: fk_user_reaction
-                    references: users(id)
+                    nullable: false
+              - column:
+                  name: author_type
+                  type: VARCHAR
+                  constraints:
+                    nullable: false
               - column:
                   name: reaction_type
                   type: VARCHAR

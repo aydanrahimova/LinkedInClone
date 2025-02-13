@@ -15,5 +15,5 @@ public interface AuthService {
 
     void requestPasswordReset(String email);
 
-    void resetPassword(RecoveryPassword recoveryPassword);
+    void resetPassword(String token, RecoveryPassword recoveryPassword);
 }

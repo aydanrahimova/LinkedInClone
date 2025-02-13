@@ -26,17 +26,15 @@ databaseChangeLog:
                   name: description
                   type: TEXT
               - column:
-                  name: email
-                  type: VARCHAR(255)
-                  constraints:
-                    nullable: false
-              - column:
                   name: posted_at
                   type: TIMESTAMP
                   defaultValueComputed: CURRENT_TIMESTAMP
               - column:
                   name: application_deadline
                   type: DATE
+              - column:
+                  name: status
+                  type: varchar
               - column:
                   name: organization_id
                   type: BIGINT

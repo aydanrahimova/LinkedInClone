@@ -1,6 +1,7 @@
 package az.matrix.linkedinclone.service;
 
 import az.matrix.linkedinclone.dto.response.JobApplicationResponse;
+import az.matrix.linkedinclone.enums.ApplicationStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,9 @@ public interface JobApplicationService {
 
     Page<JobApplicationResponse> getAllJobApplications(Long jobId, Pageable pageable);
 
-    JobApplicationResponse acceptJobApplication(Long id);
-
-    JobApplicationResponse rejectJobApplication(Long id);
+    JobApplicationResponse changeApplicationStatus(Long id, ApplicationStatus applicationStatus);
 
     JobApplicationResponse viewApplication(Long id);
+
+    String uploadResume(Long id);
 }

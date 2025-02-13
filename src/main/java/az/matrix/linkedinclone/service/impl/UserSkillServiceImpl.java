@@ -3,70 +3,81 @@ package az.matrix.linkedinclone.service.impl;
 import az.matrix.linkedinclone.dao.entity.Skill;
 import az.matrix.linkedinclone.dao.entity.SkillUser;
 import az.matrix.linkedinclone.dao.entity.User;
-import az.matrix.linkedinclone.dao.repo.SkillRepo;
-import az.matrix.linkedinclone.dao.repo.SkillUserRepo;
-import az.matrix.linkedinclone.dao.repo.UserRepo;
+import az.matrix.linkedinclone.dao.repo.SkillRepository;
+import az.matrix.linkedinclone.dao.repo.SkillUserRepository;
+import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.dto.request.SkillUserRequest;
 import az.matrix.linkedinclone.dto.response.SkillUserResponse;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.mapper.SkillUserMapper;
 import az.matrix.linkedinclone.service.UserSkillService;
+import az.matrix.linkedinclone.utility.AuthHelper;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserSkillServiceImpl implements UserSkillService {
-    private final UserRepo userRepo;
-    private final SkillUserRepo skillUserRepo;
+    private final UserRepository userRepository;
+    private final SkillUserRepository skillUserRepository;
     private final SkillUserMapper skillUserMapper;
-    private final SkillRepo skillRepo;
+    private final SkillRepository skillRepository;
+    private final AuthHelper authHelper;
 
     @Override
-    public Page<SkillUserResponse> getSkillsOfUser(Long userId, Pageable pageable) {
-        log.info("Operation of getting skills of user with ID {} started", userId);
-        User user = userRepo.findById(userId).orElseThrow(() -> {
-            log.warn("Failed to get skills: User with ID {} not found", userId);
-            return new ResourceNotFoundException("USER_NOT_FOUND");
-        });
-        Page<SkillUser> skillUser = skillUserRepo.findAllByUser(user, pageable);
+    public Page<SkillUserResponse> getSkillsByUserId(Long userId, Pageable pageable) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Getting skills of user with ID {} started by user with ID {}", userId, authenticatedUser.getId());
+        Page<SkillUser> skillUser = skillUserRepository.findAllByUserId(userId, pageable);
+        if (skillUser.isEmpty() && !userRepository.existsById(userId)) throw new ResourceNotFoundException(User.class);
+        Page<SkillUserResponse> responsePage = skillUser.map(skillUserMapper::toDto);
         log.info("Skills of user with ID {} successfully returned", userId);
-        return skillUser.map(skillUserMapper::toDto);
+        return responsePage;
     }
 
     @Override
+    @Transactional
     public SkillUserResponse addSkillToUser(SkillUserRequest skillUserRequest) {
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of adding skill with ID {} to user {} started", skillUserRequest.getSkillId(), authenticatedUserEmail);
-        User user = userRepo.findByEmail(authenticatedUserEmail).orElseThrow(() -> {
-            log.warn("Failed to add skill to user: User {} not found", authenticatedUserEmail);
-            return new ResourceNotFoundException("USER_NOT_FOUND");
-        });
-        Skill skill = skillRepo.findById(skillUserRequest.getSkillId()).orElseThrow(() -> {
-            log.warn("Failed to add skill to user: Skill with ID {} not found", skillUserRequest.getSkillId());
-            return new ResourceNotFoundException("SKILL_NOT_FOUND");
-        });
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Adding skill with ID {} to user with ID {} started", skillUserRequest.getSkillId(), authenticatedUser.getId());
+        Skill skill = skillRepository.findById(skillUserRequest.getSkillId()).orElseThrow(() -> new ResourceNotFoundException(Skill.class));
         SkillUser skillUser = skillUserMapper.toEntity(skillUserRequest);
-        skillUser.setUser(user);
+        skillUser.setUser(authenticatedUser);
         skillUser.setSkill(skill);
-        skillUserRepo.save(skillUser);
-        log.info("Skill with ID {} successfully added to user {}", skillUserRequest.getSkillId(), authenticatedUserEmail);
-        return skillUserMapper.toDto(skillUser);
+        skillUserRepository.save(skillUser);
+        SkillUserResponse response = skillUserMapper.toDto(skillUser);
+        log.info("Skill with ID {} successfully added to user {}", skillUserRequest.getSkillId(), authenticatedUser.getId());
+        return response;
     }
 
     @Override
+    @Transactional
     public SkillUserResponse editSkillOfUser(Long id, SkillUserRequest skillUserRequest) {
-//        Skill skill = skillRepo.findBy
-        return null;
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Editing user skill with ID {} to user with ID {} started", id, authenticatedUser.getId());
+        SkillUser skillUser = skillUserRepository.findByIdAndUser(id, authenticatedUser).orElseThrow(() -> new ResourceNotFoundException(SkillUser.class));
+        if (!skillUser.getSkill().getId().equals(skillUserRequest.getSkillId())) {
+            Skill skill = skillRepository.findById(skillUserRequest.getSkillId()).orElseThrow(() -> new ResourceNotFoundException(Skill.class));
+            skillUser.setSkill(skill);
+        }
+        skillUserMapper.mapToUpdate(skillUser, skillUserRequest);
+        SkillUserResponse response = skillUserMapper.toDto(skillUser);
+        log.info("User Skill successfully edited");
+        return response;
     }
 
     @Override
+    @Transactional
     public void deleteSkillOfUser(Long id) {
-
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Deleting user skill with ID {} to user with ID {} started", id, authenticatedUser.getId());
+        SkillUser skillUser = skillUserRepository.findByIdAndUser(id, authenticatedUser).orElseThrow(() -> new ResourceNotFoundException(SkillUser.class));
+        skillUserRepository.delete(skillUser);
+        log.info("User skill successfully deleted");
     }
 }

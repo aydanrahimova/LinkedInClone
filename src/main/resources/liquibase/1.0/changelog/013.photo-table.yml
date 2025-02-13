@@ -13,7 +13,7 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: photoPath
+                  name: photo_path
                   type: VARCHAR(255)
                   constraints:
                     nullable: false

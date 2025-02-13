@@ -1,7 +1,7 @@
 package az.matrix.linkedinclone.utility;
 
 import az.matrix.linkedinclone.dao.entity.User;
-import az.matrix.linkedinclone.dao.repo.UserRepo;
+import az.matrix.linkedinclone.dao.repo.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -26,7 +26,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class JwtUtil {
 
-    private final UserRepo userRepo;
+    private final UserRepository userRepository;
 
     @Value("${application.security.jwt.secret-key}")
     private String secret_key;
@@ -43,7 +43,7 @@ public class JwtUtil {
 
     public String createToken(User user) {
         key = initializeKey();
-        user = userRepo.findByEmail(user.getEmail()).orElseThrow();
+        user = userRepository.findByEmail(user.getEmail()).orElseThrow();
 
         List<String> roles = user.getAuthorities()
                 .stream()
@@ -107,27 +107,27 @@ public class JwtUtil {
         final Claims claims = extractAllClaims(token);
         return claimResolver.apply(claims);
     }
-
-    private Claims parseJwtClaims(String token) {
-        return Jwts.parser().setSigningKey(secret_key).parseClaimsJws(token).getBody();
-    }
-
-    public Claims resolveClaims(HttpServletRequest req) {
-        try {
-            String token = resolveToken(req);
-            if (token != null) {
-                return parseJwtClaims(token);
-            }
-            return null;
-        } catch (ExpiredJwtException ex) {
-            log.error("Error due to: {}", ex.getMessage());
-            req.setAttribute("expired", ex.getMessage());
-            throw ex;
-        } catch (Exception ex) {
-            log.error("Error due to: {}", ex.getMessage());
-            req.setAttribute("invalid", ex.getMessage());
-            throw ex;
-        }
-    }
+//
+//    private Claims parseJwtClaims(String token) {
+//        return Jwts.parser().setSigningKey(secret_key).parseClaimsJws(token).getBody();
+//    }
+//
+//    public Claims resolveClaims(HttpServletRequest req) {
+//        try {
+//            String token = resolveToken(req);
+//            if (token != null) {
+//                return parseJwtClaims(token);
+//            }
+//            return null;
+//        } catch (ExpiredJwtException ex) {
+//            log.error("Error due to: {}", ex.getMessage());
+//            req.setAttribute("expired", ex.getMessage());
+//            throw ex;
+//        } catch (Exception ex) {
+//            log.error("Error due to: {}", ex.getMessage());
+//            req.setAttribute("invalid", ex.getMessage());
+//            throw ex;
+//        }
+//    }
 
 }

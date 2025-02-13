@@ -28,12 +28,16 @@ public class Job {
     @JoinColumn(name = "organization_id")
     private Organization organization;
     @ManyToMany
+    @JoinTable(
+            name = "job_skills",
+            joinColumns = @JoinColumn(name = "job_id"),
+            inverseJoinColumns = @JoinColumn(name = "skill_id")
+    )
     private List<Skill> skills = new ArrayList<>();
     @CreationTimestamp
     private LocalDate postedAt;
     private LocalDate applicationDeadline;
     @Enumerated(EnumType.STRING)
     private EntityStatus status;
-    //skillar her hansisa usera uyursa onda ona maile mesaj gelir ki iw uygundur ona
 }
 

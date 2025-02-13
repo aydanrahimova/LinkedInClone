@@ -8,7 +8,6 @@ import lombok.Data;
 
 @Data
 public class RecoveryPassword {
-    private String otp;
     @NotNull(message = "new password can not be null")
     @Size(min = 3, max = 30)
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$"
@@ -17,7 +16,5 @@ public class RecoveryPassword {
     private String newPassword;
 
     @NotNull(message = "retry password can not be null")
-    @Size(min = 3, max = 30)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*])[A-Za-z\\d!@#$%^&*]{8,}$")
     private String retryPassword;
 }

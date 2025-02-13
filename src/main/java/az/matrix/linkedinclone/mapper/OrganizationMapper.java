@@ -9,10 +9,10 @@ import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface OrganizationMapper {
-    @Mapping(target = "logoPath",source ="logoPath",ignore = true)
     Organization toEntity(OrganizationRequest organizationRequest);
+
     OrganizationResponse toDto(Organization organization);
 
-    @Mapping(target = "logoPath",source ="logoPath",ignore = true)
+//    @Mapping(target = "logoPath", source = "logoPath", ignore = true)
     void mapForUpdate(Organization organization, @MappingTarget OrganizationRequest organizationRequest);
 }

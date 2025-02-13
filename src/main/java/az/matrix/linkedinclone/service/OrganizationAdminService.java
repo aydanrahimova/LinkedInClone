@@ -10,13 +10,14 @@ import org.springframework.stereotype.Service;
 
 @Service
 public interface OrganizationAdminService {
-    boolean isAdmin(User user, Organization organization);
 
-    OrganizationAdminResponse addAdmin(Long id, Long userId, OrganizationRole role);
+    boolean isAdmin(User user, Long organizationId);
 
-    OrganizationAdminResponse changeAdminRole(Long id, Long userId, OrganizationRole organizationRole);
+    OrganizationAdminResponse addAdmin(Long organizationId, Long userId, OrganizationRole role);
 
-    void deleteAdmin(Long id, Long userId);
+    OrganizationAdminResponse changeRole(Long organizationId, Long id, OrganizationRole organizationRole);
+
+    void deleteAdmin(Long id, Long organizationId);
 
     Page<OrganizationAdminResponse> getAllAdmins(Long organizationId, Pageable pageable);
 }

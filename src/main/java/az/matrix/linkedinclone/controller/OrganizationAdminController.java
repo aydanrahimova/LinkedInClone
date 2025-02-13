@@ -25,14 +25,14 @@ public class OrganizationAdminController {
         return organizationAdminService.addAdmin(organizationId, userId, role);
     }
 
-    @PatchMapping("/{userId}")
-    public OrganizationAdminResponse changeAdminRole(@RequestParam Long organizationId, @PathVariable Long userId, @RequestParam OrganizationRole organizationRole) {
-        return organizationAdminService.changeAdminRole(organizationId, userId, organizationRole);
+    @PatchMapping("/{id}")
+    public OrganizationAdminResponse changeRole(@PathVariable Long id, @RequestParam Long organizationId, @RequestParam OrganizationRole organizationRole) {
+        return organizationAdminService.changeRole(organizationId, id, organizationRole);
     }
 
-    @DeleteMapping
-    public void deleteAdmin(@RequestParam Long id, @RequestParam Long userId) {
-        organizationAdminService.deleteAdmin(id, userId);
+    @DeleteMapping("/{id}")
+    public void deleteAdmin(@PathVariable Long id, @RequestParam Long organizationId) {
+        organizationAdminService.deleteAdmin(id, organizationId);
     }
 
 }

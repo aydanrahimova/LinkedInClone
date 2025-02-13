@@ -3,134 +3,108 @@ package az.matrix.linkedinclone.service.impl;
 import az.matrix.linkedinclone.dao.entity.Connection;
 import az.matrix.linkedinclone.dao.entity.User;
 import az.matrix.linkedinclone.dao.repo.ConnectionRepository;
-import az.matrix.linkedinclone.dao.repo.UserRepo;
+import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.dto.response.ConnectionResponse;
+import az.matrix.linkedinclone.dto.response.UserResponse;
 import az.matrix.linkedinclone.enums.ConnectionStatus;
+import az.matrix.linkedinclone.enums.EntityStatus;
 import az.matrix.linkedinclone.exception.AlreadyExistException;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.mapper.ConnectionMapper;
+import az.matrix.linkedinclone.mapper.UserMapper;
 import az.matrix.linkedinclone.service.ConnectionService;
+import az.matrix.linkedinclone.utility.AuthHelper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class ConnectionServiceImpl implements ConnectionService {
-    private final UserRepo userRepo;
+    private final UserRepository userRepository;
     private final ConnectionRepository connectionRepository;
     private final ConnectionMapper connectionMapper;
+    private final AuthHelper authHelper;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
     public ConnectionResponse sendConnectionRequest(Long receiverId) {
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of sending connection request to user with ID {} started by user {}", receiverId, authenticatedUserEmail);
-        User sender = userRepo.findByEmail(authenticatedUserEmail).orElseThrow(() -> {
-            log.warn("Failed to send connection request: Sender {} not found", authenticatedUserEmail);
-            return new ResourceNotFoundException("SENDER_NOT_FOUND");
-        });
-        User receiver = userRepo.findById(receiverId).orElseThrow(() -> {
-            log.warn("Failed to send connection request: Receiver with ID {} not found", receiverId);
-            return new ResourceNotFoundException("SENDER_NOT_FOUND");
-        });
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Operation of sending connection request to user with ID {} started by user {}", receiverId, authenticatedUser.getId());
+        User receiver = userRepository.findByIdAndStatus(receiverId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(User.class));
 
-        Connection existingConnection = connectionRepository.findConnectionBetweenUsers(sender, receiver);
+        Connection existingConnection = connectionRepository.findConnectionBetweenUsers(authenticatedUser, receiver);
         if (existingConnection != null) {
             if (existingConnection.getStatus() == ConnectionStatus.REJECTED || existingConnection.getStatus() == ConnectionStatus.DELETED) {
                 existingConnection.setStatus(ConnectionStatus.PENDING);
-                //email gonderme-obwiy metoda cixar
                 connectionRepository.save(existingConnection);
-            } else {
-                log.warn("Failed to send connection: Sender {} and receiver {} are already connected or connection are already sent", authenticatedUserEmail, receiver.getEmail());
-                throw new AlreadyExistException("CONNECTION_EXISTS");
-            }
+            } else throw new AlreadyExistException(Connection.class);
         }
 
         Connection connection = Connection.builder()
-                .sender(sender)
+                .sender(authenticatedUser)
                 .receiver(receiver)
                 .status(ConnectionStatus.PENDING)
-                .sendTime(LocalDate.now())
                 .build();
         connectionRepository.save(connection);
 
         log.info("Connection request is successfully sent to user {}", receiver.getEmail());
-        //email gonderme
-//        String subject = "New Connection Request";
-//        String body = String.format("You have received a new connection request from %s %s.",
-//                sender.getFirstName(), sender.getLastName());
+
+        ConnectionResponse response = connectionMapper.toDto(connection);
+        response.setConnectedUser(userMapper.toDto(receiver));
         log.info("Notification is sent to user {} to his/her email", receiver.getEmail());
 
-
-        return connectionMapper.toDto(connection);
+        return response;
     }
 
     @Override
-    public Page<ConnectionResponse> getConnectionsOfUser(Long userId, Pageable pageable) {
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of getting all connections starts for user {}", authenticatedUserEmail);
-        User user = userRepo.findByEmail(authenticatedUserEmail).orElseThrow();
-        Page<ConnectionResponse> connectionResponsePage;
-        Page<Connection> connections = connectionRepository.findAllConnectionsByUser(user, pageable);
-        connectionResponsePage = connections.map(connectionMapper::toDto);
-        log.info("Connections of user {} are returned", authenticatedUserEmail);
-        return connectionResponsePage;
+    public Page<UserResponse> getConnectionsOfUser(Long userId, Pageable pageable) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Operation of getting connections of user with ID {} started by user with ID {}", userId, authenticatedUser.getId());
+        if (authenticatedUser.getId().equals(userId)) {
+            Page<Connection> connections = connectionRepository.findAllConnectionsByUserAndStatus(userId, ConnectionStatus.ACCEPTED, pageable);
+            return connections.map(connection -> {
+                User user = connection.getSender().getId().equals(userId) ? connection.getReceiver() : connection.getSender();
+                return userMapper.toDto(user);
+            });
+        } else {
+            Page<User> connectedUsers = connectionRepository.findMutualConnectionBetweenUsers(authenticatedUser.getId(), userId, ConnectionStatus.ACCEPTED, pageable);
+            return connectedUsers.map(userMapper::toDto);
+        }
     }
-
-    @Override
-    @Transactional
-    public ConnectionResponse acceptConnectionRequest(Long id) {
-        return updateStatus(id, ConnectionStatus.PENDING, ConnectionStatus.ACCEPTED);
-    }
-
-    @Override
-    @Transactional
-    public ConnectionResponse rejectConnectionRequest(Long id) {
-        return updateStatus(id, ConnectionStatus.PENDING, ConnectionStatus.REJECTED);
-    }
-    //bir api ile yaz
 
     @Override
     @Transactional
     public void deleteConnection(Long id) {
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of deleting connection with ID {} started for user {}", id, authenticatedUserEmail);
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Operation of deleting connection with ID {} started for user with ID {}", id, authenticatedUser.getId());
 
-        User user = userRepo.findByEmail(authenticatedUserEmail).orElseThrow();
-
-        Connection connection = connectionRepository
-                .findByIdAndStatusAndUser(id, ConnectionStatus.ACCEPTED, user);
+        Connection connection = connectionRepository.findByIdAndStatusAndUser(id, ConnectionStatus.ACCEPTED, authenticatedUser);
         if (connection == null) {
-            log.warn("Failed to delete connection with ID {}: Connection not found", id);
-            throw new ResourceNotFoundException("CONNECTION_NOT_FOUND");
+            throw new ResourceNotFoundException(Connection.class);
         }
-
         connection.setStatus(ConnectionStatus.DELETED);
-
         connectionRepository.save(connection);
-        log.info("Connection with ID {} has been deleted by user {}", id, authenticatedUserEmail);
+        log.info("Connection with ID {} has been deleted by user with ID {}", id, authenticatedUser.getId());
     }
 
-    private ConnectionResponse updateStatus(Long id, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
-        String authenticatedUserEmail = SecurityContextHolder.getContext().getAuthentication().getName();
-        log.info("Operation of changing status of connection with ID {} started for user {}", id, authenticatedUserEmail);
-        User user = userRepo.findByEmail(authenticatedUserEmail).orElseThrow();
-        Connection connection = connectionRepository
-                .findByIdAndReceiverAndStatus(id, user, oldStatus)
-                .orElseThrow(() -> {
-                    log.warn("Failed to update status from {} to {}: Connection not found", oldStatus, newStatus);
-                    return new ResourceNotFoundException("CONNECTION_NOT_FOUND");
-                });
+    @Override
+    @Transactional
+    public ConnectionResponse changeConnectionStatus(Long id, ConnectionStatus newStatus) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Operation of changing status of connection with ID {} started for user with ID {}", id, authenticatedUser.getId());
+        Connection connection = connectionRepository.findByIdAndReceiverAndStatus(id, authenticatedUser, ConnectionStatus.PENDING).orElseThrow(() -> new ResourceNotFoundException(Connection.class));
         connection.setStatus(newStatus);
+        connection.setResponseTime(LocalDateTime.now());
         connectionRepository.save(connection);
         return connectionMapper.toDto(connection);
     }
+
 }
