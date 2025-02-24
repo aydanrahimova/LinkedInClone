@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,29 +19,32 @@ public class SkillController {
     private final SkillService skillService;
 
     @GetMapping("/{id}")
-    public SkillResponse getPredefinedSkill(@PathVariable Long id) {
-        return skillService.getSkill(id);
+    public ResponseEntity<SkillResponse> getPredefinedSkill(@PathVariable Long id) {
+        SkillResponse skillResponse = skillService.getSkill(id);
+        return ResponseEntity.ok(skillResponse);
     }
 
     @GetMapping
-    public Page<SkillResponse> getPredefinedSkills(@PageableDefault Pageable pageable) {
-        return skillService.getPredefinedSkills(pageable);
+    public ResponseEntity<Page<SkillResponse>> getPredefinedSkills(@PageableDefault Pageable pageable) {
+        Page<SkillResponse> skills = skillService.getPredefinedSkills(pageable);
+        return ResponseEntity.ok(skills);
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public SkillResponse addPredefinedSkill(@Valid @RequestBody SkillRequest skillRequest) {
-        return skillService.addPredefinedSkill(skillRequest);
+    public ResponseEntity<SkillResponse> addPredefinedSkill(@Valid @RequestBody SkillRequest skillRequest) {
+        SkillResponse skillResponse = skillService.addPredefinedSkill(skillRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(skillResponse);
     }
 
     @PutMapping("/{id}")
-    public SkillResponse editPredefinedSkill(@PathVariable Long id, @Valid @RequestBody SkillRequest skillRequest) {
-        return skillService.editPredefinedSkill(id, skillRequest);
+    public ResponseEntity<SkillResponse> editPredefinedSkill(@PathVariable Long id, @Valid @RequestBody SkillRequest skillRequest) {
+        SkillResponse skillResponse = skillService.editPredefinedSkill(id, skillRequest);
+        return ResponseEntity.ok(skillResponse);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deletePredefinedSkill(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePredefinedSkill(@PathVariable Long id) {
         skillService.deletePredefinedSkill(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

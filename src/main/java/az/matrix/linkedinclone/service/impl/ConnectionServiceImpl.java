@@ -18,10 +18,13 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -68,16 +71,47 @@ public class ConnectionServiceImpl implements ConnectionService {
     public Page<UserResponse> getConnectionsOfUser(Long userId, Pageable pageable) {
         User authenticatedUser = authHelper.getAuthenticatedUser();
         log.info("Operation of getting connections of user with ID {} started by user with ID {}", userId, authenticatedUser.getId());
+
         if (authenticatedUser.getId().equals(userId)) {
             Page<Connection> connections = connectionRepository.findAllConnectionsByUserAndStatus(userId, ConnectionStatus.ACCEPTED, pageable);
-            return connections.map(connection -> {
-                User user = connection.getSender().getId().equals(userId) ? connection.getReceiver() : connection.getSender();
-                return userMapper.toDto(user);
-            });
+
+            List<UserResponse> activeUsers = connections.stream()
+                    .map(connection -> {
+                        User user = connection.getSender().getId().equals(userId) ? connection.getReceiver() : connection.getSender();
+                        return user.getStatus().equals(EntityStatus.ACTIVE)
+                                ? userMapper.toDto(user)
+                                : null;
+                    })
+                    .filter(Objects::nonNull)
+                    .toList();
+            log.info("All connection of authenticated user with ID {} returned", authenticatedUser.getId());
+            return new PageImpl<>(activeUsers, pageable, activeUsers.size());
+
         } else {
             Page<User> connectedUsers = connectionRepository.findMutualConnectionBetweenUsers(authenticatedUser.getId(), userId, ConnectionStatus.ACCEPTED, pageable);
-            return connectedUsers.map(userMapper::toDto);
+
+            List<UserResponse> activeConnectedUsers = connectedUsers.stream()
+                    .filter(user -> user.getStatus().equals(EntityStatus.ACTIVE))
+                    .map(userMapper::toDto)
+                    .toList();
+            log.info("Mutual connections of user with ID {} returned to user with ID {}.", userId, authenticatedUser.getId());
+            return new PageImpl<>(activeConnectedUsers, pageable, activeConnectedUsers.size());
         }
+    }
+
+    @Override
+    public Page<UserResponse> getPendingConnections(Pageable pageable, Boolean sentByMe) {
+        User authenticatedUser = authHelper.getAuthenticatedUser();
+        log.info("Operation of getting pending connections started by user with ID {}", authenticatedUser.getId());
+
+        Page<Connection> connections = sentByMe
+                ? connectionRepository.findAllConnectionsBySenderAndStatus(authenticatedUser, ConnectionStatus.PENDING, pageable)
+                : connectionRepository.findAllConnectionsByReceiverAndStatus(authenticatedUser, ConnectionStatus.PENDING, pageable);
+
+        List<UserResponse> activeConnectedUsers = connections.map(connection -> getUserFromConnection(connection, sentByMe)).filter(Objects::nonNull).stream().toList();
+
+        log.info("Pending connections successfully returned.");
+        return new PageImpl<>(activeConnectedUsers, pageable, activeConnectedUsers.size());
     }
 
     @Override
@@ -104,7 +138,15 @@ public class ConnectionServiceImpl implements ConnectionService {
         connection.setStatus(newStatus);
         connection.setResponseTime(LocalDateTime.now());
         connectionRepository.save(connection);
-        return connectionMapper.toDto(connection);
+        ConnectionResponse response = connectionMapper.toDto(connection);
+        response.setConnectedUser(userMapper.toDto(connection.getSender()));
+        return response;
     }
 
+    private UserResponse getUserFromConnection(Connection connection, Boolean sentByMe) {
+        User user = sentByMe ? connection.getReceiver() : connection.getSender();
+        return user.getStatus().equals(EntityStatus.ACTIVE)
+                ? userMapper.toDto(user)
+                : null;
+    }
 }

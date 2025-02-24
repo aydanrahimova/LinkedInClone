@@ -36,7 +36,8 @@ public enum SecurityUrls {
             "/configuration/ui",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/auth/**"
+            "/auth/**",
+            "/error"
     });
 
     private final String[] role;

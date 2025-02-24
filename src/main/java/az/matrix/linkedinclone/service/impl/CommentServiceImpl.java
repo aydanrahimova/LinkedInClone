@@ -50,7 +50,7 @@ public class CommentServiceImpl implements CommentService {
         User user = authHelper.getAuthenticatedUser();
         log.info("Adding comment started");
         Post post = postRepository.findById(commentRequest.getPostId()).orElseThrow(() -> new ResourceNotFoundException(Post.class));
-        Pair<Long, AuthorType> authorDetails = authorHelper.determineAuthorDetails(user, commentRequest.getCompanyId());
+        Pair<Long, AuthorType> authorDetails = authorHelper.determineAuthorDetails(user, commentRequest.getOrganizationId());
         Comment comment = Comment.builder()
                 .content(commentRequest.getContent())
                 .post(post)

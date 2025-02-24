@@ -81,7 +81,6 @@ public class JobServiceImpl implements JobService {
         jobRepository.save(job);
         JobResponse response = jobMapper.toDto(job);
         log.info("New job for successfully posted by user with ID {} for organization with ID {}", user.getId(), organization.getId());
-//        sendNotificationEmail();
         return response;
     }
 

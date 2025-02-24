@@ -48,7 +48,7 @@ public class ExperienceServiceImpl implements ExperienceService {
         User authenticatedUser = authHelper.getAuthenticatedUser();
         log.info("Adding new experience record started by authenticatedUser with ID {}", authenticatedUser.getId());
         Experience experience = experienceMapper.toEntity(experienceRequest);
-        Organization company = organizationRepository.findByIdAndOrganizationType(experienceRequest.getCompanyId(), OrganizationType.COMPANY).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        Organization company = organizationRepository.findById(experienceRequest.getCompanyId()).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
         experience.setCompany(company);
         experience.setUser(authenticatedUser);
         experienceRepository.save(experience);

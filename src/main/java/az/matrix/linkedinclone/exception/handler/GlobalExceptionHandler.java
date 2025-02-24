@@ -34,19 +34,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)//400
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IllegalArgumentException.class)
     public ExceptionDto handlerIllegalArgumentException(IllegalArgumentException ex) {
         return new ExceptionDto(ex.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)//400
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(FileIOException.class)
     public ExceptionDto handlerIllegalArgumentException(FileIOException ex) {
         return new ExceptionDto(ex.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)//401
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     @ExceptionHandler(UnauthorizedException.class)
     public ExceptionDto handleUnauthorizedException(UnauthorizedException ex) {
         return new ExceptionDto(ex.getMessage());
@@ -58,14 +58,14 @@ public class GlobalExceptionHandler {
         return new ExceptionDto(ex.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.NOT_FOUND)//404
+    @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ExceptionDto handleResourceNotFoundException(ResourceNotFoundException ex) {
         log.error(ex.getMessage());
         return new ExceptionDto(ex.getMessage());
     }
 
-    @ResponseStatus(HttpStatus.CONFLICT)//409
+    @ResponseStatus(HttpStatus.CONFLICT)
     @ExceptionHandler(AlreadyExistException.class)
     public ExceptionDto handleAlreadyExistException(AlreadyExistException ex) {
         log.error(ex.getMessage());

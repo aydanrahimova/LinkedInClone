@@ -5,8 +5,10 @@ import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.dto.request.*;
 import az.matrix.linkedinclone.dto.response.UserDetailsResponse;
 import az.matrix.linkedinclone.enums.EntityStatus;
+import az.matrix.linkedinclone.exception.IllegalArgumentException;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.mapper.UserMapper;
+import az.matrix.linkedinclone.service.TokenBlackListService;
 import az.matrix.linkedinclone.service.UserService;
 import az.matrix.linkedinclone.utility.AuthHelper;
 import az.matrix.linkedinclone.utility.MediaUploadUtil;
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final AuthHelper authHelper;
     private final PasswordEncoder passwordEncoder;
+    private final TokenBlackListService tokenBlackListService;
 
     @Value("${files.directory}")
     private String UPLOAD_DIR;
@@ -71,7 +74,7 @@ public class UserServiceImpl implements UserService {
             log.info("Password for user with email {} changed.", user.getEmail());
         } else {
             log.error("Failed to change password");
-            throw new IllegalArgumentException("Old password entered incorrectly or new passwords do not match");
+            throw new az.matrix.linkedinclone.exception.IllegalArgumentException("Old password entered incorrectly or new passwords do not match");
         }
     }
 
@@ -85,10 +88,12 @@ public class UserServiceImpl implements UserService {
             user.setDeactivationDate(LocalDateTime.now());
             user.setDeactivatedByAdmin(Boolean.FALSE);
             userRepository.save(user);
+            tokenBlackListService.addToBlackList(user.getEmail());
         } else {
             log.warn("Failed to deactivated user with ID {}: Incorrect password", user.getId());
-            throw new IllegalArgumentException("INCORRECT_PASSWORD");
+            throw new az.matrix.linkedinclone.exception.IllegalArgumentException("INCORRECT_PASSWORD");
         }
+        log.info("Operation of deactivation successfully ended.");
     }
 
     @Override
@@ -98,8 +103,11 @@ public class UserServiceImpl implements UserService {
         log.info("Operation of deactivating user with ID {} by admin with ID {} started", userId, authenticatedAdmin.getId());
         User user = userRepository.findByIdAndStatus(userId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(User.class));
         user.setStatus(EntityStatus.DEACTIVATED);
+        user.setDeactivationDate(LocalDateTime.now());
         user.setDeactivatedByAdmin(Boolean.TRUE);
-        log.info("User with ID {} successfully deleted by admin with ID {}", userId, authenticatedAdmin.getId());
+        userRepository.save(user);
+        tokenBlackListService.addToBlackList(user.getEmail());
+        log.info("User with ID {} successfully deactivated by admin with ID {}", userId, authenticatedAdmin.getId());
     }
 
     @Override
@@ -110,7 +118,9 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByIdAndStatus(id, EntityStatus.DEACTIVATED).orElseThrow(() -> new ResourceNotFoundException(User.class));
         user.setStatus(EntityStatus.ACTIVE);
         user.setDeactivationDate(null);
+        user.setDeactivatedByAdmin(null);
         userRepository.save(user);
+        tokenBlackListService.deleteFromBlackList(user.getEmail());
         log.info("User with ID {} successfully activated by admin with ID {}", id, admin.getId());
     }
 

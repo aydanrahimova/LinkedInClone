@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -16,28 +17,31 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/experiences")
 @RequiredArgsConstructor
 public class ExperienceController {
+
     private final ExperienceService experienceService;
 
     @GetMapping
-    public Page<ExperienceResponse> getAllExperienceByUserId(@RequestParam Long userId, @PageableDefault Pageable pageable) {
-        return experienceService.getExperiencesByUserId(userId, pageable);
+    public ResponseEntity<Page<ExperienceResponse>> getAllExperienceByUserId(@RequestParam Long userId, @PageableDefault Pageable pageable) {
+        Page<ExperienceResponse> experiences = experienceService.getExperiencesByUserId(userId, pageable);
+        return ResponseEntity.ok(experiences);
     }
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
-    public ExperienceResponse addExperience(@Valid @RequestBody ExperienceRequest experienceRequest) {
-        return experienceService.addExperience(experienceRequest);
+    public ResponseEntity<ExperienceResponse> addExperience(@Valid @RequestBody ExperienceRequest experienceRequest) {
+        ExperienceResponse experienceResponse = experienceService.addExperience(experienceRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(experienceResponse);
     }
 
     @PutMapping("/{id}")
-    public ExperienceResponse editExperience(@PathVariable Long id, @Valid @RequestBody ExperienceRequest experienceRequest) {
-        return experienceService.editExperience(id, experienceRequest);
+    public ResponseEntity<ExperienceResponse> editExperience(@PathVariable Long id, @Valid @RequestBody ExperienceRequest experienceRequest) {
+        ExperienceResponse experienceResponse = experienceService.editExperience(id, experienceRequest);
+        return ResponseEntity.ok(experienceResponse);
     }
 
-    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteExperience(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteExperience(@PathVariable Long id) {
         experienceService.deleteExperience(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

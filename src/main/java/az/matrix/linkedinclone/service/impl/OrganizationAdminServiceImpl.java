@@ -62,7 +62,7 @@ public class OrganizationAdminServiceImpl implements OrganizationAdminService {
         User authenticatedUser = authHelper.getAuthenticatedUser();
         log.info("Adding new admin for organization with ID {} by user with ID {} started.", organizationId, authenticatedUser.getId());
         User newAdmin = userRepository.findByIdAndStatus(userId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(User.class));
-        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
         validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
         OrganizationAdmin newOrganizationAdmin = OrganizationAdmin.builder()
                 .admin(newAdmin)
@@ -81,7 +81,7 @@ public class OrganizationAdminServiceImpl implements OrganizationAdminService {
     public OrganizationAdminResponse changeRole(Long organizationId, Long organizationAdminId, OrganizationRole organizationRole) {
         User authenticatedUser = authHelper.getAuthenticatedUser();
         log.info("Changing admin role {} in organization {} by user {} started.", organizationAdminId, organizationId, authenticatedUser.getId());
-        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
         OrganizationAdmin organizationAdminToChange = organizationAdminRepository.findByIdAndOrganizationId(organizationAdminId, organizationId).orElseThrow(() -> new ResourceNotFoundException(OrganizationAdmin.class));
         validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
         if (organizationAdminToChange.getAdmin().getId().equals(organization.getCreatedBy().getId())) {
@@ -100,15 +100,11 @@ public class OrganizationAdminServiceImpl implements OrganizationAdminService {
         User authenticatedUser = authHelper.getAuthenticatedUser();
         log.info("Deleting admin {} of organization {} started by user {}", organizationAdminId, organizationId, authenticatedUser.getId());
 
-        Organization organization = organizationRepository.findByIdAndStatus(organizationId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
+        Organization organization = organizationRepository.findByIdAndStatus(organizationId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Organization.class));
 
 
-        OrganizationAdmin organizationAdminToDelete = organizationAdminRepository.findById(organizationAdminId)
+        OrganizationAdmin organizationAdminToDelete = organizationAdminRepository.findByIdAndOrganizationId(organizationAdminId, organizationId)
                 .orElseThrow(() -> new ResourceNotFoundException(OrganizationAdmin.class));
-
-        if (!organizationAdminToDelete.getOrganization().getId().equals(organizationId)) {
-            throw new ForbiddenException("Admin does not belong to this organization.");
-        }
 
         validateAdminPermission(organizationId, authenticatedUser, OrganizationPermission.MANAGE_ROLES);
 

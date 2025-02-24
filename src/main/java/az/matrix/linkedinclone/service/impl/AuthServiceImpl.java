@@ -13,11 +13,14 @@ import az.matrix.linkedinclone.dto.response.AuthResponse;
 import az.matrix.linkedinclone.enums.EmailTemplate;
 import az.matrix.linkedinclone.enums.EntityStatus;
 import az.matrix.linkedinclone.exception.AlreadyExistException;
+import az.matrix.linkedinclone.exception.IllegalArgumentException;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import az.matrix.linkedinclone.exception.UnauthorizedException;
 import az.matrix.linkedinclone.service.AuthService;
 import az.matrix.linkedinclone.service.EmailSenderService;
+import az.matrix.linkedinclone.service.TokenBlackListService;
 import az.matrix.linkedinclone.utility.JwtUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -44,10 +47,31 @@ public class AuthServiceImpl implements AuthService {
     private final AuthorityRepository authorityRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailSenderService emailSenderService;
+    private final TokenBlackListService tokenBlackListService;
 
     @Override
     public AuthResponse login(AuthRequest authRequest) {
         log.info("Attempting to authenticate user with email: {}", authRequest.getEmail());
+
+        User user = userRepository.findByEmail(authRequest.getEmail()).orElseThrow(() -> new ResourceNotFoundException(User.class));
+
+        if (user.getStatus() == EntityStatus.DEACTIVATED) {
+            if (user.getDeactivatedByAdmin()) {
+                log.error("User with email {} deactivated by admin and only admin can active this account", user.getEmail());
+                throw new UnauthorizedException("Your account has been deactivated. Contact support.");
+            } else {
+                log.info("User with email {} is deactivated. Reactivating the account.", user.getEmail());
+                user.setStatus(EntityStatus.ACTIVE);
+                user.setDeactivationDate(null);
+                user.setDeactivatedByAdmin(null);
+                userRepository.save(user);
+                tokenBlackListService.deleteFromBlackList(user.getEmail());
+            }
+        } else if (user.getStatus() == EntityStatus.DELETED) {
+            log.error("User with email {} is deleted. Cannot authenticate.", authRequest.getEmail());
+            throw new ResourceNotFoundException(User.class);
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -55,23 +79,6 @@ public class AuthServiceImpl implements AuthService {
                             authRequest.getPassword()
                     )
             );
-            User user = userRepository.findByEmail(authRequest.getEmail())
-                    .orElseThrow(() -> {
-                        log.warn("User with email {} not found.", authRequest.getEmail());
-                        return new ResourceNotFoundException(User.class);
-                    });
-
-            if (user.getStatus() == EntityStatus.DEACTIVATED && !user.getDeactivatedByAdmin()) {
-                log.info("User with email {} is deactivated. Reactivating the account.", authRequest.getEmail());
-                user.setStatus(EntityStatus.ACTIVE);
-                user.setDeactivationDate(null);
-                userRepository.save(user);
-            }
-
-            if (user.getStatus() == EntityStatus.DELETED) {
-                log.warn("User with email {} is deleted. Cannot authenticate.", authRequest.getEmail());
-                throw new ResourceNotFoundException(User.class);
-            }
 
             String jwtToken = jwtUtil.createToken(user);
 
@@ -97,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
         }
         if (!userRequest.getPassword().equals(userRequest.getPasswordConfirm())) {
             log.warn("Password and password confirmation don't match.");
-            throw new IllegalArgumentException("PASSWORD_MISMATCHING");
+            throw new az.matrix.linkedinclone.exception.IllegalArgumentException("PASSWORD_MISMATCHING");
         }
 
         User user = User.builder()
@@ -123,6 +130,7 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Override
+    @Transactional
     public void requestPasswordReset(String email) {
         User user = userRepository.findByEmailAndStatus(email, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(User.class));
         log.info("Requesting password reset started by user with ID {}", user.getId());
@@ -133,12 +141,12 @@ public class AuthServiceImpl implements AuthService {
                 .expirationTime(LocalDateTime.now().plusMinutes(15))
                 .build();
         passwordResetTokenRepository.save(passwordResetToken);
-        String resetUrl = "http://localhost:8080/api/auth/reset-password?token=" + token;
-        Map<String, String> placeholders = Map.of("userName", user.getFirstName(), "resetUrl", resetUrl);
+        Map<String, String> placeholders = Map.of("userName", user.getFirstName(), "resetToken", token);
         emailSenderService.sendEmail(email, EmailTemplate.PASSWORD_RESET, placeholders);
     }
 
     @Override
+    @Transactional
     public void resetPassword(String token, RecoveryPassword recoveryPassword) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(token).orElseThrow(() -> new ResourceNotFoundException(PasswordResetToken.class));
         User user = resetToken.getUser();
@@ -152,14 +160,13 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
         passwordResetTokenRepository.delete(resetToken);
         log.info("Password was successfully recovered");
-
     }
 
     private boolean isExpired(PasswordResetToken resetToken) {
         return resetToken.getExpirationTime().isBefore(LocalDateTime.now());
     }
 
-    public static String generateToken() {
+    private static String generateToken() {
         SecureRandom secureRandom = new SecureRandom();
         byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);

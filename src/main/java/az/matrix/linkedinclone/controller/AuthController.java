@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,24 +20,27 @@ public class AuthController {
 
     private final AuthService authService;
 
-    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/signup")
-    public AuthResponse register(@Valid @RequestBody UserRequest userRequest) {
-        return authService.register(userRequest);
+    public ResponseEntity<AuthResponse> register(@Validated @RequestBody UserRequest userRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.register(userRequest));
     }
 
     @PostMapping("/sign-in")
-    public AuthResponse login(@Valid @RequestBody AuthRequest authRequest) {
-        return authService.login(authRequest);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
+        AuthResponse response = authService.login(authRequest);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/forgot-password")
-    public void requestPasswordReset(@Valid @NotBlank @RequestParam String email) {
+    public ResponseEntity<String> requestPasswordReset(@RequestParam @NotBlank String email) {
         authService.requestPasswordReset(email);
+        return ResponseEntity.ok("Password reset token has been sent to user's email");
     }
 
     @PatchMapping("/reset-password")
-    public void resetPassword(@RequestParam @NotBlank String token, @Valid @RequestBody RecoveryPassword recoveryPassword) {
-        authService.resetPassword(token,recoveryPassword);
+    public ResponseEntity<String> resetPassword(@RequestParam @NotBlank String token, @Valid @RequestBody RecoveryPassword recoveryPassword) {
+        authService.resetPassword(token, recoveryPassword);
+        return ResponseEntity.ok("Password has been successfully reset.");
     }
 }
+

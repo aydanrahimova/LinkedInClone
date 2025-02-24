@@ -8,9 +8,10 @@ public enum EmailTemplate {
     PASSWORD_RESET("You have requested to reset your password\n",
             """
                     Hi {userName},
-                    Click the link below to change your password
-                    {resetUrl}
-                    Ignore this email if you do remember your password,or you have not made the request."""),
+                    Use the token below to reset your password:
+                    {resetToken}
+                    Ignore this email if you do remember your password, or you have not made the request."""
+    ),
 
     APPLICATION_SEND(
             "{userName}, your application was sent to {organizationName}",

@@ -32,14 +32,14 @@ public class AuthorHelper {
         }
     }
 
-    public Pair<Long, AuthorType> determineAuthorDetails(User user, Long companyId) {
-        if (companyId != null) {
-            if (!organizationAdminService.isAdmin(user, companyId)) {
-                log.warn("User with ID {} is not authorized to act as organization {}", user.getId(), companyId);
+    public Pair<Long, AuthorType> determineAuthorDetails(User user, Long organizationId) {
+        if (organizationId != null) {
+            if (!organizationAdminService.isAdmin(user, organizationId)) {
+                log.warn("User with ID {} is not authorized to act as organization {}", user.getId(), organizationId);
                 throw new UnauthorizedException("User is not authorized to act as the organization.");
                 //accessdenied
             }
-            return Pair.of(companyId, AuthorType.ORGANIZATION);
+            return Pair.of(organizationId, AuthorType.ORGANIZATION);
         } else {
             return Pair.of(user.getId(), AuthorType.USER);
         }

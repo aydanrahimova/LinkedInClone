@@ -7,6 +7,5 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ConnectionMapper {
-//    @Mapping(target = "receiverId",source = "receiver.id")
     ConnectionResponse toDto(Connection connection);
 }

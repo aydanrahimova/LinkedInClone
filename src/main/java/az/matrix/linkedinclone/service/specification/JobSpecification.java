@@ -26,7 +26,7 @@ public class JobSpecification implements Specification<Job> {
         }
 
         if (jobFilterDto.getTitle() != null && !(jobFilterDto.getTitle().isEmpty())) {
-            predicates.add(builder.like(builder.lower(root.get("tittle")), "%" + jobFilterDto.getTitle() + "%"));
+            predicates.add(builder.like(builder.lower(root.get("title")), "%" + jobFilterDto.getTitle() + "%"));
         }
 
         if (jobFilterDto.getEmploymentType() != null) {

@@ -15,5 +15,5 @@ public class CommentRequest {
     @NotNull(message = "Post ID required")
     private Long postId;
     private Long parentCommentId;
-    private Long companyId;
+    private Long organizationId;
 }

@@ -21,11 +21,16 @@ import az.matrix.linkedinclone.utility.MediaUploadUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 @Service
@@ -68,7 +73,7 @@ public class JobApplicationServiceImpl implements JobApplicationService {
     @Override
     public Page<JobApplicationResponse> getAllJobApplications(Long jobId, Pageable pageable) {
         User user = authHelper.getAuthenticatedUser();
-        Job job = jobRepository.findByIdAndStatus(jobId,EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Job.class));
+        Job job = jobRepository.findByIdAndStatus(jobId, EntityStatus.ACTIVE).orElseThrow(() -> new ResourceNotFoundException(Job.class));
         Organization organization = job.getOrganization();
         if (!organizationAdminService.isAdmin(user, organization.getId())) {
             log.warn("Failed to get job applications for job with ID {}: You aren't admin of the organization that posted that job", jobId);
@@ -129,11 +134,6 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         return response;
     }
 
-    @Override
-    public String uploadResume(Long id) {
-        return "";
-    }
-
     private JobApplication validateJobApplicationAndAdminPermissions(Long id, User user) {
         JobApplication jobApplication = jobApplicationRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(JobApplication.class));
         Organization organization = jobApplication.getJob().getOrganization();
@@ -143,5 +143,24 @@ public class JobApplicationServiceImpl implements JobApplicationService {
         }
         return jobApplication;
     }
+
+
+    @Override
+    public Resource uploadResume(Long id) {
+        JobApplication jobApplication = jobApplicationRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(JobApplication.class));
+        String resumeUrl = jobApplication.getResumeUrl();
+        Path path = Paths.get(resumeUrl);
+        Resource resource;
+        try {
+            resource = new UrlResource(path.toUri());
+            if (!resource.exists()) {
+                throw new RuntimeException("File not found: " + resumeUrl);
+            }
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Invalid file path: " + resumeUrl);
+        }
+        return resource;
+    }
+
 
 }

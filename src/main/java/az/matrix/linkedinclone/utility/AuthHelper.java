@@ -31,7 +31,7 @@ public class AuthHelper {
         return userRepository.findByEmail(authenticatedEmail)
                 .orElseThrow(() -> {
                     log.error("User with email {} not found in the database", authenticatedEmail);
-                    return new ResourceNotFoundException("USER_NOT_FOUND");
+                    return new ResourceNotFoundException(User.class);
                 });
     }
 }

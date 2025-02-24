@@ -23,6 +23,11 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
     @Query("SELECT c FROM Connection c WHERE (c.sender.id = :userId OR c.receiver.id = :userId) AND c.status = :status ")
     Page<Connection> findAllConnectionsByUserAndStatus(Long userId, ConnectionStatus status, Pageable pageable);
 
+    Page<Connection> findAllConnectionsByReceiverAndStatus(User user, ConnectionStatus connectionStatus, Pageable pageable);
+
+    Page<Connection> findAllConnectionsBySenderAndStatus(User user, ConnectionStatus connectionStatus, Pageable pageable);
+
+
     @Query("""
                 SELECT u FROM User u
                 WHERE u.id IN (
@@ -40,4 +45,5 @@ public interface ConnectionRepository extends JpaRepository<Connection, Long> {
                 )
             """)
     Page<User> findMutualConnectionBetweenUsers(Long user1Id, Long user2Id, ConnectionStatus connectionStatus, Pageable pageable);
+
 }

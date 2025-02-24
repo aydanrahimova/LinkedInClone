@@ -1,5 +1,6 @@
 package az.matrix.linkedinclone.config;
 
+import az.matrix.linkedinclone.dao.entity.User;
 import az.matrix.linkedinclone.dao.repo.UserRepository;
 import az.matrix.linkedinclone.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,6 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException("User not found."));
+        return userRepository.findByEmail(email).orElseThrow(() -> new ResourceNotFoundException(User.class));
     }
 }

@@ -16,4 +16,6 @@ public interface ConnectionService {
     ConnectionResponse changeConnectionStatus(Long id, ConnectionStatus connectionStatus);
 
     void deleteConnection(Long id);
+
+    Page<UserResponse> getPendingConnections(Pageable pageable, Boolean sentByMe);
 }

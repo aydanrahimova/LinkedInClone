@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +36,7 @@ public class Job {
     )
     private List<Skill> skills = new ArrayList<>();
     @CreationTimestamp
-    private LocalDate postedAt;
+    private LocalDateTime postedAt;
     private LocalDate applicationDeadline;
     @Enumerated(EnumType.STRING)
     private EntityStatus status;

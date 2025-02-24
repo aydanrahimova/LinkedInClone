@@ -23,7 +23,7 @@ public class JobRequest {
     private String title;
     @NotNull(message = "Employment type is required.")
     private EmploymentType employmentType;
-    @Size(min = 5, max = 200, message = "Description of job should be between 5 and 200 characters.")
+    @Size(min = 5, max = 2000, message = "Description of job should be between 5 and 2000 characters.")
     private String description;
     @NotNull
     @Future

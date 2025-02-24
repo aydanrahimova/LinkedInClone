@@ -4,7 +4,6 @@ import az.matrix.linkedinclone.dto.request.AuthRequest;
 import az.matrix.linkedinclone.dto.request.RecoveryPassword;
 import az.matrix.linkedinclone.dto.request.UserRequest;
 import az.matrix.linkedinclone.dto.response.AuthResponse;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.stereotype.Service;
 
 @Service

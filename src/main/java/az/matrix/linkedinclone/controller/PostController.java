@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -26,30 +26,33 @@ public class PostController {
     private final PostService postService;
 
     @GetMapping
-    public Page<PostResponse> getPostsOfProfile(@RequestParam Long authorId, @RequestParam AuthorType authorType, @PageableDefault Pageable pageable) {
-        return postService.getPostsOfProfile(authorId, authorType, pageable);
+    public ResponseEntity<Page<PostResponse>> getPostsOfProfile(@RequestParam Long authorId, @RequestParam AuthorType authorType, @PageableDefault Pageable pageable) {
+        Page<PostResponse> posts = postService.getPostsOfProfile(authorId, authorType, pageable);
+        return ResponseEntity.ok(posts);
     }
 
     @GetMapping("/{id}")
-    public PostResponse getPost(@PathVariable Long id) {
-        return postService.getPost(id);
+    public ResponseEntity<PostResponse> getPost(@PathVariable Long id) {
+        PostResponse post = postService.getPost(id);
+        return ResponseEntity.ok(post);
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @ResponseStatus(HttpStatus.CREATED)
-    public PostResponse createPost(@Valid @ModelAttribute PostRequest postRequest, @RequestPart(required = false) List<MultipartFile> files) throws IOException {
-        return postService.createPost(postRequest, files);
+    public ResponseEntity<PostResponse> createPost(@Valid @ModelAttribute PostRequest postRequest, @RequestPart(required = false) List<MultipartFile> files) throws IOException {
+        PostResponse postResponse = postService.createPost(postRequest, files);
+        return ResponseEntity.status(HttpStatus.CREATED).body(postResponse);
     }
 
     @PutMapping("/{id}")
-    public PostResponse editPost(@PathVariable Long id, @Valid @RequestBody PostRequest postRequest) {
-        return postService.editPost(id, postRequest);
+    public ResponseEntity<PostResponse> editPost(@PathVariable Long id, @Valid @RequestBody PostRequest postRequest) {
+        PostResponse postResponse = postService.editPost(id, postRequest);
+        return ResponseEntity.ok(postResponse);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deletePost(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePost(@PathVariable Long id) {
         postService.deletePost(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
 }

@@ -25,5 +25,6 @@ public class ProjectRequest {
     private LocalDate startTime;
     @PastOrPresent(message = "End time must be in past or present")
     private LocalDate endTime;
+    @URL(message = "Invalid URL input")
     private String projectUrl;
 }

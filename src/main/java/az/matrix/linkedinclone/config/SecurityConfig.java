@@ -2,6 +2,7 @@ package az.matrix.linkedinclone.config;
 
 import az.matrix.linkedinclone.config.enums.SecurityUrls;
 import az.matrix.linkedinclone.config.enums.Role;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +31,7 @@ public class SecurityConfig {
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(authorize ->
                         authorize
                                 .requestMatchers(SecurityUrls.PERMIT_ALL.getUrls()).permitAll()
@@ -37,8 +39,15 @@ public class SecurityConfig {
                                 .requestMatchers(SecurityUrls.ADMIN.getUrls()).hasAnyAuthority(Role.ROLE_ADMIN.name())
                                 .anyRequest().authenticated()
                 )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage())
+                        )
+                        .accessDeniedHandler(((request, response, accessDeniedException) ->
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, accessDeniedException.getMessage())))
+                )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+        ;
         return http.build();
     }
 

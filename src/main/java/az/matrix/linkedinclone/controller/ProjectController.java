@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -19,26 +20,27 @@ public class ProjectController {
     private final ProjectService projectService;
 
     @GetMapping
-    public Page<ProjectResponse> getProjectsByUserId(@RequestParam Long userId, @PageableDefault Pageable pageable) {
-        return projectService.getProjectsByUserId(userId, pageable);
+    public ResponseEntity<Page<ProjectResponse>> getProjectsByUserId(@RequestParam Long userId, @PageableDefault Pageable pageable) {
+        Page<ProjectResponse> projects = projectService.getProjectsByUserId(userId, pageable);
+        return ResponseEntity.ok(projects);
     }
 
     @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public ProjectResponse addProject(@Valid @RequestBody ProjectRequest projectRequest) {
-        return projectService.addProject(projectRequest);
+    public ResponseEntity<ProjectResponse> addProject(@Valid @RequestBody ProjectRequest projectRequest) {
+        ProjectResponse projectResponse = projectService.addProject(projectRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectResponse);
     }
 
     @PutMapping("/{id}")
-    public ProjectResponse editProject(@PathVariable Long id, @Valid @RequestBody ProjectRequest projectRequest) {
-        return projectService.editProject(id, projectRequest);
+    public ResponseEntity<ProjectResponse> editProject(@PathVariable Long id, @Valid @RequestBody ProjectRequest projectRequest) {
+        ProjectResponse projectResponse = projectService.editProject(id, projectRequest);
+        return ResponseEntity.ok(projectResponse);
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteProject(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProject(@PathVariable Long id) {
         projectService.deleteProject(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
 }
 
