@@ -14,10 +14,8 @@ Below is a detailed breakdown of all the features implemented in this project.
 
 - **User Profile Management**: Users can create and update their profiles, showcasing their skills, experience, and
   education.
-- **Posts and Comments**: Users can create posts, comment on others' posts, and engage with the community. Additionally,
-  posts and comments can be added to organization pages.
-- **Reaction**: Users can react to posts and comments. Reactions can also be added as an organization page, allowing
-  companies to engage with the community.
+- **Posts and Comments**: Users can create posts, comment on others' posts, and engage with the community. Organization pages can also create posts and comment on behalf of the organization, enabling companies to interact with their audience directly.
+- **Reaction**: Users can react to posts and comments (e.g., like, celebrate, etc.). Organization pages can also react to posts and comments, allowing companies to engage with the community in a meaningful way.
 - **Connections**: Users can build their professional network by connecting with other users.
 - **Organization Page Management**:
     - Users can create and manage organization pages, allowing companies to establish their presence on the platform.
@@ -43,6 +41,7 @@ Below is a detailed breakdown of all the features implemented in this project.
 - **Scheduler**: Spring Scheduler for handling scheduled tasks
 - **Build Tool**: Gradle
 - **Version Control**: Git, GitHub
+- **Containerization**: Docker
 
 
 

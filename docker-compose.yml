@@ -1,0 +1,23 @@
+version: '3.8'
+services:
+  app:
+    image: aydanrahimova/linkedin-clone-app
+    container_name: linkedin-clone-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/linkedin_clone_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 2810
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    container_name: linkedin_clone_db
+    environment:
+      POSTGRES_DB: linkedin_clone_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 2810
+    ports:
+      - "5432:5432"

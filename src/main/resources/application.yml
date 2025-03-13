@@ -4,14 +4,13 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     database: postgresql
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
   servlet:
     multipart:
       enabled: true
       max-file-size: 10MB
       max-request-size: 50MB
-
 
   datasource:
     username: postgres
@@ -21,6 +20,7 @@ spring:
   liquibase:
     change-log: classpath:/liquibase/changelog-master.yml
     enabled: true
+
 
   mail:
     host: smtp.gmail.com
@@ -34,7 +34,6 @@ spring:
           auth: true
           starttls:
             enable: true
-
 
 
 application:
